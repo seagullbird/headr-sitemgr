@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: repoctl
+  labels:
+    app: repoctl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: repoctl
+  template:
+    metadata:
+      labels:
+        app: repoctl
+    spec:
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+         claimName: data-claim
+      containers:
+      - name: repoctl
+        image: repoctl:{{ .Commit }}
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - mountPath: "/data"
+            name: data

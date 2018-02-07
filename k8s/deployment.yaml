@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sitemgr
+  labels:
+    app: sitemgr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sitemgr
+  template:
+    metadata:
+      labels:
+        app: sitemgr
+    spec:
+      containers:
+      - name: sitemgr
+        image: sitemgr:{{ .Commit }}
+        imagePullPolicy: IfNotPresent

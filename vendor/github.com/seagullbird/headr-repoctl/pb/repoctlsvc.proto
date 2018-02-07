@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package pb;
+
+// The Repoctl service definition.
+service Repoctl {
+    // Sums two integers.
+    rpc NewSite (NewSiteRequest) returns (NewSiteReply) {}
+}
+
+// The sum request contains two parameters.
+message NewSiteRequest {
+    string email = 1;
+    string sitename = 2;
+}
+
+// The sum response contains the result of the calculation.
+message NewSiteReply {
+    string err = 1;
+}
