@@ -22,6 +22,15 @@ func New(svc service.Service, logger log.Logger) Set {
 	}
 }
 
+func (s Set) NewSite(ctx context.Context, email, sitename string) error {
+	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{Email: email, SiteName: sitename})
+	if err != nil {
+		return err
+	}
+	response := resp.(NewSiteResponse)
+	return response.Err
+}
+
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
