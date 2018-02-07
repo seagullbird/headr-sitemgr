@@ -9,6 +9,7 @@ import (
 	"github.com/seagullbird/headr-sitemgr/pb"
 	"context"
 	kitendpoint "github.com/go-kit/kit/endpoint"
+	"github.com/go-errors/errors"
 )
 
 type grpcServer struct {
