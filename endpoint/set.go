@@ -38,3 +38,9 @@ func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 		return NewSiteResponse{Err: err}, nil
 	}
 }
+
+type Failer interface {
+	Failed() error
+}
+
+func (r NewSiteResponse) Failed() error { return r.Err }
