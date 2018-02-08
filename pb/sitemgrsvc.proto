@@ -5,16 +5,16 @@ package pb;
 // The Sitemgr service definition.
 service Sitemgr {
     // Create a new site.
-    rpc NewSite (NewSiteRequest) returns (NewSiteReply) {}
+    rpc NewSite (CreateNewSiteRequest) returns (CreateNewSiteReply) {}
 }
 
 // The new site request contains two parameters.
-message NewSiteRequest {
+message CreateNewSiteRequest {
     string email = 1;
     string sitename = 2;
 }
 
 // The new site response contains the result of the creation.
-message NewSiteReply {
+message CreateNewSiteReply {
     string err = 1;
 }

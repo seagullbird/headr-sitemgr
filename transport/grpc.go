@@ -39,7 +39,7 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			"NewSite",
 			encodeGRPCNewSiteRequest,
 			decodeGRPCNewSiteResponse,
-			pb.NewSiteReply{},
+			pb.CreateNewSiteReply{},
 		).Endpoint()
 	}
 
@@ -51,21 +51,21 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 	}
 }
 
-func (s *grpcServer) NewSite(ctx context.Context, req *pb.NewSiteRequest) (*pb.NewSiteReply, error) {
+func (s *grpcServer) NewSite(ctx context.Context, req *pb.CreateNewSiteRequest) (*pb.CreateNewSiteReply, error) {
 	_, rep, err := s.newsite.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*pb.NewSiteReply), nil
+	return rep.(*pb.CreateNewSiteReply), nil
 }
 
 func encodeGRPCNewSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(endpoint.NewSiteRequest)
-	return &pb.NewSiteRequest{Email: req.Email, Sitename: req.SiteName}, nil
+	return &pb.CreateNewSiteRequest{Email: req.Email, Sitename: req.SiteName}, nil
 }
 
 func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.NewSiteRequest)
+	req := grpcReq.(*pb.CreateNewSiteRequest)
 	return endpoint.NewSiteRequest{
 		Email: req.Email,
 		SiteName: req.Sitename,
@@ -74,12 +74,12 @@ func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface
 
 func encodeGRPCNewSiteResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(endpoint.NewSiteResponse)
-	return &pb.NewSiteReply{
+	return &pb.CreateNewSiteReply{
 		Err: resp.Err.Error(),
 	}, nil
 }
 
 func decodeGRPCNewSiteResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*pb.NewSiteReply)
+	reply := grpcReply.(*pb.CreateNewSiteReply)
 	return endpoint.NewSiteResponse{Err: errors.New(reply.Err)}, nil
 }

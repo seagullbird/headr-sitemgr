@@ -18,3 +18,15 @@ spec:
       - name: sitemgr
         image: sitemgr:{{ .Commit }}
         imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sitemgr
+spec:
+  selector:
+    app: sitemgr
+  ports:
+  - protocol: TCP
+    port: 2018
+    targetPort: 8688
