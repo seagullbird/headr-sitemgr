@@ -1,8 +1,8 @@
 package endpoint
 
 type NewSiteRequest struct {
-	Email		string
-	SiteName	string
+	Email		string	`json:"email"`
+	SiteName	string	`json:"site_name"`
 }
 
 type NewSiteResponse struct {

@@ -2,19 +2,19 @@ syntax = "proto3";
 
 package pb;
 
-// The Repoctl service definition.
+// The Sitemgr service definition.
 service Sitemgr {
-    // Sums two integers.
+    // Create a new site.
     rpc NewSite (NewSiteRequest) returns (NewSiteReply) {}
 }
 
-// The sum request contains two parameters.
+// The new site request contains two parameters.
 message NewSiteRequest {
     string email = 1;
     string sitename = 2;
 }
 
-// The sum response contains the result of the calculation.
+// The new site response contains the result of the creation.
 message NewSiteReply {
     string err = 1;
 }
