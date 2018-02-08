@@ -18,6 +18,6 @@ container: build
 	docker build -t sitemgr:${COMMIT} .
 
 minikube: container
-	cat k8s/deployment.yaml | gsed -E "s/\{\{(\s*)\.Commit(\s*)\}\}/$(COMMIT)/g" > tmp.yaml
+	cat k8s/k8s.yaml | gsed -E "s/\{\{(\s*)\.Commit(\s*)\}\}/$(COMMIT)/g" > tmp.yaml
 	kubectl apply -f tmp.yaml
 	rm -f tmp.yaml
