@@ -1,7 +1,7 @@
 GOARCH?=amd64
 GOOS?=linux
 APP?=repoctl
-PROJECT?=github.com/seagullbird/headr/services/repoctl
+PROJECT?=github.com/seagullbird/headr-repoctl
 COMMIT?=$(shell git rev-parse --short HEAD)
 PORT?=:8687
 
