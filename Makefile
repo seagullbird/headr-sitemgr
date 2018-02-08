@@ -3,7 +3,7 @@ GOOS?=linux
 APP?=sitemgr
 PROJECT?=github.com/seagullbird/headr-sitemgr
 COMMIT?=$(shell git rev-parse --short HEAD)
-PORT?=:8688
+PORT?=8688
 
 
 clean:
@@ -11,7 +11,7 @@ clean:
 
 build: clean
 	GOARCH=${GOARCH} GOOS=${GOOS} go build \
-	-ldflags "-s -w -X ${PROJECT}/config.PORT=${PORT}" \
+	-ldflags "-s -w -X ${PROJECT}/config.PORT=:${PORT}" \
 	-o ${APP}
 
 container: build
