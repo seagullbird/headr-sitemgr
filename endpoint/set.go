@@ -35,7 +35,7 @@ func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
 		err = svc.NewSite(ctx, req.Email, req.SiteName)
-		return NewSiteResponse{Err: err}, nil
+		return NewSiteResponse{Err: err}, err
 	}
 }
 

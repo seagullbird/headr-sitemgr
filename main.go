@@ -29,7 +29,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer conn.Close()
-	repoctlsvc := repoctltransport.NewGRPCClient(conn, log.NewNopLogger())
+	repoctlsvc := repoctltransport.NewGRPCClient(conn, logger)
 
 	var (
 		service = service.New(repoctlsvc, logger)
