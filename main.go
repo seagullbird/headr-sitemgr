@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// Repoctl gRPC service
-	conn, err := grpc.Dial("repoctl", grpc.WithInsecure())
+	conn, err := grpc.Dial("repoctl:2018", grpc.WithInsecure())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v", err)
 		os.Exit(1)
