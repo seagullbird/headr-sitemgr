@@ -81,7 +81,7 @@ func encodeGRPCNewSiteResponse(_ context.Context, response interface{}) (interfa
 
 func decodeGRPCNewSiteResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.NewSiteReply)
-	return endpoint.NewSiteResponse{Err: errors.New(reply.Err)}, nil
+	return endpoint.NewSiteResponse{Err: str2err(reply.Err)}, nil
 }
 
 func err2str(err error) string {
@@ -89,4 +89,11 @@ func err2str(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+func str2err(s string) error {
+	if s == "" {
+		return nil
+	}
+	return errors.New(s)
 }
