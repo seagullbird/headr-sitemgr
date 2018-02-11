@@ -36,8 +36,8 @@ func err2code(err error) int {
 }
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
-	w.WriteHeader(err2code(err))
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(err2code(err))
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
 
