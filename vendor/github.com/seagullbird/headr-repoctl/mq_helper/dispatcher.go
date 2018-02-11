@@ -45,7 +45,7 @@ func NewDispatcher(queueName string) Dispatcher {
 		Host:     config.MQSERVERNAME,
 		Port:     5672,
 		Username: "user",
-		Password: "kQS5MZHEFC",
+		Password: config.MQSERVERPWD,
 		Vhost:    "/",
 	}
 	conn, err := amqp.Dial(uri.String())

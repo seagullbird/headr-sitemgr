@@ -25,3 +25,15 @@ spec:
         volumeMounts:
           - mountPath: "/data"
             name: data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: repoctl
+spec:
+  selector:
+    app: repoctl
+  ports:
+  - protocol: TCP
+    port: 2018
+    targetPort: {{ .Port }}

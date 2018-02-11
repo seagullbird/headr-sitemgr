@@ -8,7 +8,7 @@ import (
 )
 
 type Service interface {
-	NewSite(ctx context.Context, username, sitename string) error
+	NewSite(ctx context.Context, email, sitename string) error
 }
 
 func New(dispatcher mq_helper.Dispatcher, logger log.Logger) Service {

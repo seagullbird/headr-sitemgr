@@ -30,5 +30,9 @@ func NewBasicService(repoctlsvc repoctlservice.Service) basicService {
 }
 
 func (s basicService) NewSite(ctx context.Context, email, sitename string) error {
-	return s.repoctlsvc.NewSite(ctx, email, sitename)
+	err := s.repoctlsvc.NewSite(ctx, email, sitename)
+	if err != nil {
+		return err
+	}
+	return nil
 }
