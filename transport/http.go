@@ -29,7 +29,10 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 }
 
 func err2code(err error) int {
-	return http.StatusInternalServerError
+	if err != nil {
+		return http.StatusInternalServerError
+	}
+	return http.StatusOK
 }
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
