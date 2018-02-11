@@ -37,6 +37,7 @@ func err2code(err error) int {
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 	w.WriteHeader(err2code(err))
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
 
@@ -47,10 +48,10 @@ func decodeHTTPNewSiteRequest(_ context.Context, r *http.Request) (interface{}, 
 }
 
 func encodeHTTPGenericResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
 		errorEncoder(ctx, f.Failed(), w)
 		return nil
 	}
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(w).Encode(response)
 }
