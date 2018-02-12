@@ -12,6 +12,7 @@ import (
 	"github.com/seagullbird/headr-sitemgr/service"
 	"github.com/seagullbird/headr-sitemgr/transport"
 	"github.com/seagullbird/headr-sitemgr/pb"
+	"github.com/seagullbird/headr-common/mq_helper"
 )
 
 func main() {
@@ -30,9 +31,9 @@ func main() {
 	}
 	defer conn.Close()
 	repoctlsvc := repoctltransport.NewGRPCClient(conn, logger)
-
+	dispatcher := mq_helper.NewDispatcher("new_site_server")
 	var (
-		service = service.New(repoctlsvc, logger)
+		service = service.New(repoctlsvc, logger, dispatcher)
 		endpoints = endpoint.New(service, logger)
 		grpcServer = transport.NewGRPCServer(endpoints, logger)
 	)

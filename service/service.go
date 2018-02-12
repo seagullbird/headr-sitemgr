@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/go-kit/kit/log"
 	repoctlservice "github.com/seagullbird/headr-repoctl/service"
+	"github.com/seagullbird/headr-common/mq_helper"
+	"time"
 )
 
 type Service interface {
@@ -11,22 +13,24 @@ type Service interface {
 	DeleteSite(ctx context.Context, email, sitename string) error
 }
 
-func New(repoctlsvc repoctlservice.Service, logger log.Logger) Service {
+func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher mq_helper.Dispatcher) Service {
 	var svc Service
 	{
-		svc = NewBasicService(repoctlsvc)
+		svc = NewBasicService(repoctlsvc, dispatcher)
 		svc = LoggingMiddleware(logger)(svc)
 	}
 	return svc
 }
 
 type basicService struct {
-	repoctlsvc repoctlservice.Service
+	repoctlsvc 	repoctlservice.Service
+	dispatcher	mq_helper.Dispatcher
 }
 
-func NewBasicService(repoctlsvc repoctlservice.Service) basicService {
+func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher mq_helper.Dispatcher) basicService {
 	return basicService{
 		repoctlsvc: repoctlsvc,
+		dispatcher: dispatcher,
 	}
 }
 
@@ -35,7 +39,12 @@ func (s basicService) NewSite(ctx context.Context, email, sitename string) error
 	if err != nil {
 		return err
 	}
-	return nil
+	var newsiteEvent = mq_helper.NewSiteEvent{
+		Email: email,
+		SiteName: sitename,
+		ReceivedOn: time.Now().Unix(),
+	}
+	return s.dispatcher.DispatchMessage(newsiteEvent)
 }
 
 func (s basicService) DeleteSite(ctx context.Context, email, sitename string) error {
