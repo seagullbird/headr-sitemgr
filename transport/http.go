@@ -25,6 +25,12 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 		encodeHTTPGenericResponse,
 		options...,
 	))
+	m.Handle("/delete-site", httptransport.NewServer(
+		endpoints.DeleteSiteEndpoint,
+		decodeHTTPDeleteSiteRequest,
+		encodeHTTPGenericResponse,
+		options...,
+	))
 	return m
 }
 
@@ -54,4 +60,10 @@ func encodeHTTPGenericResponse(ctx context.Context, w http.ResponseWriter, respo
 		return nil
 	}
 	return json.NewEncoder(w).Encode(response)
+}
+
+func decodeHTTPDeleteSiteRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var req endpoint.DeleteSiteRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	return req, err
 }

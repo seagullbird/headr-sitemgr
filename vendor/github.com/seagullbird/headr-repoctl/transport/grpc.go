@@ -14,6 +14,7 @@ import (
 
 type grpcServer struct {
 	newsite 	grpctransport.Handler
+	deletesite	grpctransport.Handler
 }
 
 func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.RepoctlServer {
@@ -25,6 +26,12 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.RepoctlServer {
 			endpoints.NewSiteEndpoint,
 			decodeGRPCNewSiteRequest,
 			encodeGRPCNewSiteResponse,
+			options...,
+		),
+		deletesite: grpctransport.NewServer(
+			endpoints.DeleteSiteEndpoint,
+			decodeGRPCDeleteSiteRequest,
+			encodeGRPCDeleteSiteResponse,
 			options...,
 		),
 	}
@@ -42,12 +49,23 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			pb.NewSiteReply{},
 		).Endpoint()
 	}
-
+	var deletesiteEndpoint kitendpoint.Endpoint
+	{
+		deletesiteEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Repoctl",
+			"DeleteSite",
+			encodeGRPCDeleteSiteRequest,
+			decodeGRPCDeleteSiteResponse,
+			pb.DeleteSiteReply{},
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
 	return endpoint.Set{
 		NewSiteEndpoint: newsiteEndpoint,
+		DeleteSiteEndpoint: deletesiteEndpoint,
 	}
 }
 
@@ -59,14 +77,35 @@ func (s *grpcServer) NewSite(ctx context.Context, req *pb.NewSiteRequest) (*pb.N
 	return rep.(*pb.NewSiteReply), nil
 }
 
+func (s *grpcServer) DeleteSite(ctx context.Context, req *pb.DeleteSiteRequest) (*pb.DeleteSiteReply, error) {
+	_, rep, err := s.deletesite.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.DeleteSiteReply), nil
+}
+
 func encodeGRPCNewSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(endpoint.NewSiteRequest)
 	return &pb.NewSiteRequest{Email: req.Email, Sitename: req.SiteName}, nil
 }
 
+func encodeGRPCDeleteSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(endpoint.DeleteSiteRequest)
+	return &pb.DeleteSiteRequest{Email: req.Email, Sitename: req.SiteName}, nil
+}
+
 func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.NewSiteRequest)
 	return endpoint.NewSiteRequest{
+		Email: req.Email,
+		SiteName: req.Sitename,
+	}, nil
+}
+
+func decodeGRPCDeleteSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.DeleteSiteRequest)
+	return endpoint.DeleteSiteRequest{
 		Email: req.Email,
 		SiteName: req.Sitename,
 	}, nil
@@ -79,9 +118,21 @@ func encodeGRPCNewSiteResponse(_ context.Context, response interface{}) (interfa
 	}, nil
 }
 
+func encodeGRPCDeleteSiteResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(endpoint.DeleteSiteResponse)
+	return &pb.DeleteSiteReply{
+		Err: err2str(resp.Err),
+	}, nil
+}
+
 func decodeGRPCNewSiteResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.NewSiteReply)
 	return endpoint.NewSiteResponse{Err: str2err(reply.Err)}, nil
+}
+
+func decodeGRPCDeleteSiteResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.DeleteSiteReply)
+	return endpoint.DeleteSiteResponse{Err: str2err(reply.Err)}, nil
 }
 
 func err2str(err error) string {

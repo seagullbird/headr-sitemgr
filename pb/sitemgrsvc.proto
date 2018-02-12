@@ -6,6 +6,7 @@ package pb;
 service Sitemgr {
     // Create a new site.
     rpc NewSite (CreateNewSiteRequest) returns (CreateNewSiteReply) {}
+    rpc DeleteSite (ProxyDeleteSiteRequest) returns (ProxyDeleteSiteReply) {}
 }
 
 // The new site request contains two parameters.
@@ -16,5 +17,15 @@ message CreateNewSiteRequest {
 
 // The new site response contains the result of the creation.
 message CreateNewSiteReply {
+    string err = 1;
+}
+
+message ProxyDeleteSiteRequest {
+    string email = 1;
+    string sitename = 2;
+}
+
+// The new site response contains the result of the creation.
+message ProxyDeleteSiteReply {
     string err = 1;
 }

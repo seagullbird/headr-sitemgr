@@ -10,6 +10,8 @@ It is generated from these files:
 It has these top-level messages:
 	NewSiteRequest
 	NewSiteReply
+	DeleteSiteRequest
+	DeleteSiteReply
 */
 package pb
 
@@ -33,7 +35,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-// The sum request contains two parameters.
 type NewSiteRequest struct {
 	Email    string `protobuf:"bytes,1,opt,name=email" json:"email,omitempty"`
 	Sitename string `protobuf:"bytes,2,opt,name=sitename" json:"sitename,omitempty"`
@@ -58,7 +59,6 @@ func (m *NewSiteRequest) GetSitename() string {
 	return ""
 }
 
-// The sum response contains the result of the calculation.
 type NewSiteReply struct {
 	Err string `protobuf:"bytes,1,opt,name=err" json:"err,omitempty"`
 }
@@ -75,9 +75,51 @@ func (m *NewSiteReply) GetErr() string {
 	return ""
 }
 
+type DeleteSiteRequest struct {
+	Email    string `protobuf:"bytes,1,opt,name=email" json:"email,omitempty"`
+	Sitename string `protobuf:"bytes,2,opt,name=sitename" json:"sitename,omitempty"`
+}
+
+func (m *DeleteSiteRequest) Reset()                    { *m = DeleteSiteRequest{} }
+func (m *DeleteSiteRequest) String() string            { return proto.CompactTextString(m) }
+func (*DeleteSiteRequest) ProtoMessage()               {}
+func (*DeleteSiteRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *DeleteSiteRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *DeleteSiteRequest) GetSitename() string {
+	if m != nil {
+		return m.Sitename
+	}
+	return ""
+}
+
+type DeleteSiteReply struct {
+	Err string `protobuf:"bytes,1,opt,name=err" json:"err,omitempty"`
+}
+
+func (m *DeleteSiteReply) Reset()                    { *m = DeleteSiteReply{} }
+func (m *DeleteSiteReply) String() string            { return proto.CompactTextString(m) }
+func (*DeleteSiteReply) ProtoMessage()               {}
+func (*DeleteSiteReply) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *DeleteSiteReply) GetErr() string {
+	if m != nil {
+		return m.Err
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*NewSiteRequest)(nil), "pb.NewSiteRequest")
 	proto.RegisterType((*NewSiteReply)(nil), "pb.NewSiteReply")
+	proto.RegisterType((*DeleteSiteRequest)(nil), "pb.DeleteSiteRequest")
+	proto.RegisterType((*DeleteSiteReply)(nil), "pb.DeleteSiteReply")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -91,8 +133,8 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for Repoctl service
 
 type RepoctlClient interface {
-	// Sums two integers.
 	NewSite(ctx context.Context, in *NewSiteRequest, opts ...grpc.CallOption) (*NewSiteReply, error)
+	DeleteSite(ctx context.Context, in *DeleteSiteRequest, opts ...grpc.CallOption) (*DeleteSiteReply, error)
 }
 
 type repoctlClient struct {
@@ -112,11 +154,20 @@ func (c *repoctlClient) NewSite(ctx context.Context, in *NewSiteRequest, opts ..
 	return out, nil
 }
 
+func (c *repoctlClient) DeleteSite(ctx context.Context, in *DeleteSiteRequest, opts ...grpc.CallOption) (*DeleteSiteReply, error) {
+	out := new(DeleteSiteReply)
+	err := grpc.Invoke(ctx, "/pb.Repoctl/DeleteSite", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Repoctl service
 
 type RepoctlServer interface {
-	// Sums two integers.
 	NewSite(context.Context, *NewSiteRequest) (*NewSiteReply, error)
+	DeleteSite(context.Context, *DeleteSiteRequest) (*DeleteSiteReply, error)
 }
 
 func RegisterRepoctlServer(s *grpc.Server, srv RepoctlServer) {
@@ -141,6 +192,24 @@ func _Repoctl_NewSite_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Repoctl_DeleteSite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSiteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RepoctlServer).DeleteSite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Repoctl/DeleteSite",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RepoctlServer).DeleteSite(ctx, req.(*DeleteSiteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Repoctl_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.Repoctl",
 	HandlerType: (*RepoctlServer)(nil),
@@ -148,6 +217,10 @@ var _Repoctl_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NewSite",
 			Handler:    _Repoctl_NewSite_Handler,
+		},
+		{
+			MethodName: "DeleteSite",
+			Handler:    _Repoctl_DeleteSite_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -157,15 +230,18 @@ var _Repoctl_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("repoctlsvc.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 155 bytes of a gzipped FileDescriptorProto
+	// 194 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x28, 0x4a, 0x2d, 0xc8,
 	0x4f, 0x2e, 0xc9, 0x29, 0x2e, 0x4b, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2a, 0x48,
 	0x52, 0x72, 0xe2, 0xe2, 0xf3, 0x4b, 0x2d, 0x0f, 0xce, 0x2c, 0x49, 0x0d, 0x4a, 0x2d, 0x2c, 0x4d,
 	0x2d, 0x2e, 0x11, 0x12, 0xe1, 0x62, 0x4d, 0xcd, 0x4d, 0xcc, 0xcc, 0x91, 0x60, 0x54, 0x60, 0xd4,
 	0xe0, 0x0c, 0x82, 0x70, 0x84, 0xa4, 0xb8, 0x38, 0x8a, 0x33, 0x4b, 0x52, 0xf3, 0x12, 0x73, 0x53,
 	0x25, 0x98, 0xc0, 0x12, 0x70, 0xbe, 0x92, 0x02, 0x17, 0x0f, 0xdc, 0x8c, 0x82, 0x9c, 0x4a, 0x21,
-	0x01, 0x2e, 0xe6, 0xd4, 0xa2, 0x22, 0xa8, 0x7e, 0x10, 0xd3, 0xc8, 0x86, 0x8b, 0x3d, 0x08, 0x62,
-	0xbb, 0x90, 0x21, 0x17, 0x3b, 0x54, 0xb1, 0x90, 0x90, 0x5e, 0x41, 0x92, 0x1e, 0xaa, 0xed, 0x52,
-	0x02, 0x28, 0x62, 0x05, 0x39, 0x95, 0x4a, 0x0c, 0x49, 0x6c, 0x60, 0xe7, 0x1a, 0x03, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0x88, 0x2f, 0x83, 0x23, 0xc2, 0x00, 0x00, 0x00,
+	0x01, 0x2e, 0xe6, 0xd4, 0xa2, 0x22, 0xa8, 0x7e, 0x10, 0x53, 0xc9, 0x95, 0x4b, 0xd0, 0x25, 0x35,
+	0x27, 0xb5, 0x24, 0x95, 0x32, 0x8b, 0x94, 0xb9, 0xf8, 0x91, 0x8d, 0xc1, 0x6a, 0x97, 0x51, 0x05,
+	0x17, 0x7b, 0x10, 0xc4, 0xa7, 0x42, 0x86, 0x5c, 0xec, 0x50, 0x87, 0x09, 0x09, 0xe9, 0x15, 0x24,
+	0xe9, 0xa1, 0xfa, 0x54, 0x4a, 0x00, 0x45, 0xac, 0x20, 0xa7, 0x52, 0x89, 0x41, 0xc8, 0x8a, 0x8b,
+	0x0b, 0x61, 0x85, 0x90, 0x28, 0x48, 0x05, 0x86, 0xcb, 0xa5, 0x84, 0xd1, 0x85, 0xc1, 0x7a, 0x93,
+	0xd8, 0xc0, 0xc1, 0x6a, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x47, 0xed, 0x05, 0x8b, 0x6a, 0x01,
+	0x00, 0x00,
 }

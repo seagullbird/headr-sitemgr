@@ -7,7 +7,8 @@ import (
 )
 
 type Service interface {
-	NewSite(ctx context.Context, username, sitename string) error
+	NewSite(ctx context.Context, email, sitename string) error
+	DeleteSite(ctx context.Context, email, sitename string) error
 }
 
 func New(repoctlsvc repoctlservice.Service, logger log.Logger) Service {
@@ -35,4 +36,8 @@ func (s basicService) NewSite(ctx context.Context, email, sitename string) error
 		return err
 	}
 	return nil
+}
+
+func (s basicService) DeleteSite(ctx context.Context, email, sitename string) error {
+	return s.repoctlsvc.DeleteSite(ctx, email, sitename)
 }

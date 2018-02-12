@@ -4,17 +4,24 @@ package pb;
 
 // The Repoctl service definition.
 service Repoctl {
-    // Sums two integers.
     rpc NewSite (NewSiteRequest) returns (NewSiteReply) {}
+    rpc DeleteSite (DeleteSiteRequest) returns (DeleteSiteReply) {}
 }
 
-// The sum request contains two parameters.
 message NewSiteRequest {
     string email = 1;
     string sitename = 2;
 }
 
-// The sum response contains the result of the calculation.
 message NewSiteReply {
+    string err = 1;
+}
+
+message DeleteSiteRequest {
+    string email = 1;
+    string sitename = 2;
+}
+
+message DeleteSiteReply {
     string err = 1;
 }
