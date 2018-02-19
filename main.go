@@ -12,7 +12,8 @@ import (
 	"github.com/seagullbird/headr-sitemgr/service"
 	"github.com/seagullbird/headr-sitemgr/transport"
 	"github.com/seagullbird/headr-sitemgr/pb"
-	"github.com/seagullbird/headr-common/mq_helper"
+	"github.com/seagullbird/headr-common/mq"
+	"github.com/seagullbird/headr-common/mq/dispatch"
 )
 
 func main() {
@@ -30,8 +31,26 @@ func main() {
 		os.Exit(1)
 	}
 	defer conn.Close()
+
+	// mq dispatcher
+	var (
+		servername = mq.MQSERVERNAME
+		username   = mq.MQUSERNAME
+		passwd     = mq.MQSERVERPWD
+	)
+	dConn, err := mq.MakeConn(servername, username, passwd)
+	if err != nil {
+		logger.Log("error_desc", "mq.MakeConn failed", "error", err)
+		return
+	}
+	dispatcher, err := dispatch.NewDispatcher(dConn, "new_site_server", logger)
+	if err != nil {
+		logger.Log("error_desc", "dispatch.NewDispatcher failed", "error", err)
+		return
+	}
+
+	// repoctl service
 	repoctlsvc := repoctltransport.NewGRPCClient(conn, logger)
-	dispatcher := mq_helper.NewDispatcher("new_site_server")
 	var (
 		service = service.New(repoctlsvc, logger, dispatcher)
 		endpoints = endpoint.New(service, logger)
