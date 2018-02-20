@@ -43,7 +43,7 @@ func main() {
 		logger.Log("error_desc", "mq.MakeConn failed", "error", err)
 		return
 	}
-	dispatcher, err := dispatch.NewDispatcher(dConn, "new_site_server", logger)
+	dispatcher, err := dispatch.NewDispatcher(dConn, logger)
 	if err != nil {
 		logger.Log("error_desc", "dispatch.NewDispatcher failed", "error", err)
 		return

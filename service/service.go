@@ -45,9 +45,18 @@ func (s basicService) NewSite(ctx context.Context, email, sitename string) error
 		SiteName: sitename,
 		ReceivedOn: time.Now().Unix(),
 	}
-	return s.dispatcher.DispatchMessage(newsiteEvent)
+	return s.dispatcher.DispatchMessage("new_site_server", newsiteEvent)
 }
 
 func (s basicService) DeleteSite(ctx context.Context, email, sitename string) error {
-	return s.repoctlsvc.DeleteSite(ctx, email, sitename)
+	err := s.repoctlsvc.DeleteSite(ctx, email, sitename)
+	if err != nil {
+		return err
+	}
+	var delsiteEvent = mq.DelSiteEvent{
+		Email: email,
+		SiteName: sitename,
+		ReceivedOn: time.Now().Unix(),
+	}
+	return s.dispatcher.DispatchMessage("del_site_server", delsiteEvent)
 }
