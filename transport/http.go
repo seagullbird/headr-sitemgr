@@ -1,12 +1,12 @@
 package transport
 
 import (
-	"github.com/seagullbird/headr-sitemgr/endpoint"
-	"github.com/go-kit/kit/log"
-	"net/http"
-	httptransport "github.com/go-kit/kit/transport/http"
-	"encoding/json"
 	"context"
+	"encoding/json"
+	"github.com/go-kit/kit/log"
+	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/seagullbird/headr-sitemgr/endpoint"
+	"net/http"
 )
 
 type errorWrapper struct {

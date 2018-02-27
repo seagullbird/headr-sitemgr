@@ -1,20 +1,20 @@
 package transport
 
 import (
-	"google.golang.org/grpc"
+	"context"
+	"github.com/go-errors/errors"
+	kitendpoint "github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/log"
 	grpctransport "github.com/go-kit/kit/transport/grpc"
 	"github.com/seagullbird/headr-sitemgr/endpoint"
-	"github.com/seagullbird/headr-sitemgr/service"
-	"github.com/go-kit/kit/log"
 	"github.com/seagullbird/headr-sitemgr/pb"
-	"context"
-	kitendpoint "github.com/go-kit/kit/endpoint"
-	"github.com/go-errors/errors"
+	"github.com/seagullbird/headr-sitemgr/service"
+	"google.golang.org/grpc"
 )
 
 type grpcServer struct {
-	newsite 	grpctransport.Handler
-	deletesite  grpctransport.Handler
+	newsite    grpctransport.Handler
+	deletesite grpctransport.Handler
 }
 
 func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.SitemgrServer {
@@ -64,7 +64,7 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
 	return endpoint.Set{
-		NewSiteEndpoint: newsiteEndpoint,
+		NewSiteEndpoint:    newsiteEndpoint,
 		DeleteSiteEndpoint: deletesiteEndpoint,
 	}
 }
@@ -93,7 +93,7 @@ func encodeGRPCNewSiteRequest(_ context.Context, request interface{}) (interface
 func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.CreateNewSiteRequest)
 	return endpoint.NewSiteRequest{
-		Email: req.Email,
+		Email:    req.Email,
 		SiteName: req.Sitename,
 	}, nil
 }
@@ -118,7 +118,7 @@ func encodeGRPCDeleteSiteRequest(_ context.Context, request interface{}) (interf
 func decodeGRPCDeleteSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.ProxyDeleteSiteRequest)
 	return endpoint.DeleteSiteRequest{
-		Email: req.Email,
+		Email:    req.Email,
 		SiteName: req.Sitename,
 	}, nil
 }

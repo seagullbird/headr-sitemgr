@@ -3,13 +3,13 @@ package endpoint
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/seagullbird/headr-sitemgr/service"
 	"github.com/go-kit/kit/log"
+	"github.com/seagullbird/headr-sitemgr/service"
 )
 
 type Set struct {
-	NewSiteEndpoint		endpoint.Endpoint
-	DeleteSiteEndpoint	endpoint.Endpoint
+	NewSiteEndpoint    endpoint.Endpoint
+	DeleteSiteEndpoint endpoint.Endpoint
 }
 
 func New(svc service.Service, logger log.Logger) Set {
@@ -24,7 +24,7 @@ func New(svc service.Service, logger log.Logger) Set {
 		deletesiteEndpoint = LoggingMiddleware(logger)(deletesiteEndpoint)
 	}
 	return Set{
-		NewSiteEndpoint: newsiteEndpoint,
+		NewSiteEndpoint:    newsiteEndpoint,
 		DeleteSiteEndpoint: deletesiteEndpoint,
 	}
 }

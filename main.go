@@ -1,19 +1,19 @@
 package main
 
 import (
-	"os"
-	"github.com/go-kit/kit/log"
-	"google.golang.org/grpc"
 	"fmt"
-	repoctltransport "github.com/seagullbird/headr-repoctl/transport"
-	"net"
-	"github.com/seagullbird/headr-sitemgr/config"
-	"github.com/seagullbird/headr-sitemgr/endpoint"
-	"github.com/seagullbird/headr-sitemgr/service"
-	"github.com/seagullbird/headr-sitemgr/transport"
-	"github.com/seagullbird/headr-sitemgr/pb"
+	"github.com/go-kit/kit/log"
 	"github.com/seagullbird/headr-common/mq"
 	"github.com/seagullbird/headr-common/mq/dispatch"
+	repoctltransport "github.com/seagullbird/headr-repoctl/transport"
+	"github.com/seagullbird/headr-sitemgr/config"
+	"github.com/seagullbird/headr-sitemgr/endpoint"
+	"github.com/seagullbird/headr-sitemgr/pb"
+	"github.com/seagullbird/headr-sitemgr/service"
+	"github.com/seagullbird/headr-sitemgr/transport"
+	"google.golang.org/grpc"
+	"net"
+	"os"
 )
 
 func main() {
@@ -52,8 +52,8 @@ func main() {
 	// repoctl service
 	repoctlsvc := repoctltransport.NewGRPCClient(conn, logger)
 	var (
-		service = service.New(repoctlsvc, logger, dispatcher)
-		endpoints = endpoint.New(service, logger)
+		service    = service.New(repoctlsvc, logger, dispatcher)
+		endpoints  = endpoint.New(service, logger)
 		grpcServer = transport.NewGRPCServer(endpoints, logger)
 	)
 

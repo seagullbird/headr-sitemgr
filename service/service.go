@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"github.com/go-kit/kit/log"
-	repoctlservice "github.com/seagullbird/headr-repoctl/service"
 	"github.com/seagullbird/headr-common/mq"
 	"github.com/seagullbird/headr-common/mq/dispatch"
+	repoctlservice "github.com/seagullbird/headr-repoctl/service"
 	"time"
 )
 
@@ -40,9 +40,9 @@ func (s basicService) NewSite(ctx context.Context, email, sitename string) error
 	if err != nil {
 		return err
 	}
-	var newsiteEvent = mq.NewSiteEvent{
-		Email: email,
-		SiteName: sitename,
+	var newsiteEvent = mq.SiteUpdatedEvent{
+		Email:      email,
+		SiteName:   sitename,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("new_site_server", newsiteEvent)
@@ -53,9 +53,9 @@ func (s basicService) DeleteSite(ctx context.Context, email, sitename string) er
 	if err != nil {
 		return err
 	}
-	var delsiteEvent = mq.DelSiteEvent{
-		Email: email,
-		SiteName: sitename,
+	var delsiteEvent = mq.SiteUpdatedEvent{
+		Email:      email,
+		SiteName:   sitename,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("del_site_server", delsiteEvent)
