@@ -39,6 +39,7 @@ func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Disp
 	}
 }
 
+// TODO: After creating new site, sitemgr should be responsible for updating siteID to user's app_metadata through Auth0's Management API
 func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) error {
 	site := &db.Site{
 		UserId:   userID,
