@@ -129,13 +129,14 @@ func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface
 func encodeGRPCNewSiteResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(endpoint.NewSiteResponse)
 	return &pb.CreateNewSiteReply{
-		Err: err2str(resp.Err),
+		SiteId: uint64(resp.SiteId),
+		Err:    err2str(resp.Err),
 	}, nil
 }
 
 func decodeGRPCNewSiteResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.CreateNewSiteReply)
-	return endpoint.NewSiteResponse{Err: str2err(reply.Err)}, nil
+	return endpoint.NewSiteResponse{SiteId: uint(reply.SiteId), Err: str2err(reply.Err)}, nil
 }
 
 // DeleteSite

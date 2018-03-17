@@ -16,7 +16,8 @@ message CreateNewSiteRequest {
 }
 
 message CreateNewSiteReply {
-    string err = 1;
+    uint64 site_id = 1;
+    string err = 2;
 }
 
 message ProxyDeleteSiteRequest {

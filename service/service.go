@@ -12,7 +12,7 @@ import (
 )
 
 type Service interface {
-	NewSite(ctx context.Context, userID uint, sitename string) error
+	NewSite(ctx context.Context, userID uint, sitename string) (uint, error)
 	DeleteSite(ctx context.Context, siteID uint) error
 	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
 }
@@ -41,7 +41,7 @@ func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Disp
 }
 
 // TODO: After creating new site, sitemgr should be responsible for updating siteID to user's app_metadata through Auth0's Management API
-func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) error {
+func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
 	site := &db.Site{
 		UserId:   userID,
 		Theme:    config.InitialTheme,
@@ -49,17 +49,18 @@ func (s basicService) NewSite(ctx context.Context, userID uint, sitename string)
 	}
 	siteID, err := s.store.InsertSite(site)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	err = s.repoctlsvc.NewSite(ctx, siteID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	var newsiteEvent = mq.SiteUpdatedEvent{
-		SiteId:     siteID,
+		SiteId:     site.Model.ID,
+		Theme:      site.Theme,
 		ReceivedOn: time.Now().Unix(),
 	}
-	return s.dispatcher.DispatchMessage("new_site_server", newsiteEvent)
+	return site.Model.ID, s.dispatcher.DispatchMessage("new_site_server", newsiteEvent)
 }
 
 func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {

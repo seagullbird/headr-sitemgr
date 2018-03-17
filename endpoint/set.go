@@ -36,13 +36,13 @@ func New(svc service.Service, logger log.Logger) Set {
 	}
 }
 
-func (s Set) NewSite(ctx context.Context, userID uint, sitename string) error {
+func (s Set) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
 	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{UserId: userID, SiteName: sitename})
 	if err != nil {
-		return err
+		return 0, err
 	}
 	response := resp.(NewSiteResponse)
-	return response.Err
+	return response.SiteId, response.Err
 }
 
 func (s Set) DeleteSite(ctx context.Context, siteID uint) error {
@@ -66,8 +66,8 @@ func (s Set) CheckSitenameExists(ctx context.Context, sitename string) (bool, er
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
-		err = svc.NewSite(ctx, req.UserId, req.SiteName)
-		return NewSiteResponse{Err: err}, err
+		id, err := svc.NewSite(ctx, req.UserId, req.SiteName)
+		return NewSiteResponse{SiteId: id, Err: err}, err
 	}
 }
 
