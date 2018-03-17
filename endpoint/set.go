@@ -29,8 +29,8 @@ func New(svc service.Service, logger log.Logger) Set {
 	}
 }
 
-func (s Set) NewSite(ctx context.Context, email, sitename string) error {
-	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{Email: email, SiteName: sitename})
+func (s Set) NewSite(ctx context.Context, userID uint, sitename string) error {
+	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{UserId: userID, SiteName: sitename})
 	if err != nil {
 		return err
 	}
@@ -38,8 +38,8 @@ func (s Set) NewSite(ctx context.Context, email, sitename string) error {
 	return response.Err
 }
 
-func (s Set) DeleteSite(ctx context.Context, email, sitename string) error {
-	resp, err := s.DeleteSiteEndpoint(ctx, DeleteSiteRequest{Email: email, SiteName: sitename})
+func (s Set) DeleteSite(ctx context.Context, siteID uint) error {
+	resp, err := s.DeleteSiteEndpoint(ctx, DeleteSiteRequest{SiteId: siteID})
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (s Set) DeleteSite(ctx context.Context, email, sitename string) error {
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
-		err = svc.NewSite(ctx, req.Email, req.SiteName)
+		err = svc.NewSite(ctx, req.UserId, req.SiteName)
 		return NewSiteResponse{Err: err}, err
 	}
 }
@@ -58,7 +58,7 @@ func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 func MakeDeleteSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(DeleteSiteRequest)
-		err = svc.DeleteSite(ctx, req.Email, req.SiteName)
+		err = svc.DeleteSite(ctx, req.SiteId)
 		return DeleteSiteResponse{Err: err}, err
 	}
 }

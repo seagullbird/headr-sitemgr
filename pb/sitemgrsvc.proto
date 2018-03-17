@@ -11,7 +11,7 @@ service Sitemgr {
 
 // The new site request contains two parameters.
 message CreateNewSiteRequest {
-    string email = 1;
+    uint64 user_id = 1;
     string sitename = 2;
 }
 
@@ -21,8 +21,7 @@ message CreateNewSiteReply {
 }
 
 message ProxyDeleteSiteRequest {
-    string email = 1;
-    string sitename = 2;
+    uint64 site_id = 1;
 }
 
 // The new site response contains the result of the creation.

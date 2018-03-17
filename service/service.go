@@ -6,18 +6,20 @@ import (
 	"github.com/seagullbird/headr-common/mq"
 	"github.com/seagullbird/headr-common/mq/dispatch"
 	repoctlservice "github.com/seagullbird/headr-repoctl/service"
+	"github.com/seagullbird/headr-sitemgr/config"
+	"github.com/seagullbird/headr-sitemgr/db"
 	"time"
 )
 
 type Service interface {
-	NewSite(ctx context.Context, email, sitename string) error
-	DeleteSite(ctx context.Context, email, sitename string) error
+	NewSite(ctx context.Context, userID uint, sitename string) error
+	DeleteSite(ctx context.Context, siteID uint) error
 }
 
-func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher dispatch.Dispatcher) Service {
+func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher dispatch.Dispatcher, store db.Store) Service {
 	var svc Service
 	{
-		svc = NewBasicService(repoctlsvc, dispatcher)
+		svc = NewBasicService(repoctlsvc, dispatcher, store)
 		svc = LoggingMiddleware(logger)(svc)
 	}
 	return svc
@@ -26,36 +28,45 @@ func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher dispat
 type basicService struct {
 	repoctlsvc repoctlservice.Service
 	dispatcher dispatch.Dispatcher
+	store      db.Store
 }
 
-func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Dispatcher) basicService {
+func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Dispatcher, store db.Store) basicService {
 	return basicService{
 		repoctlsvc: repoctlsvc,
 		dispatcher: dispatcher,
+		store:      store,
 	}
 }
 
-func (s basicService) NewSite(ctx context.Context, email, sitename string) error {
-	err := s.repoctlsvc.NewSite(ctx, email, sitename)
+func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) error {
+	site := &db.Site{
+		UserId:   userID,
+		Theme:    config.InitialTheme,
+		Sitename: sitename,
+	}
+	siteID, err := s.store.InsertSite(site)
+	if err != nil {
+		return err
+	}
+	err = s.repoctlsvc.NewSite(ctx, siteID)
 	if err != nil {
 		return err
 	}
 	var newsiteEvent = mq.SiteUpdatedEvent{
-		Email:      email,
-		SiteName:   sitename,
+		SiteId:     siteID,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("new_site_server", newsiteEvent)
 }
 
-func (s basicService) DeleteSite(ctx context.Context, email, sitename string) error {
-	err := s.repoctlsvc.DeleteSite(ctx, email, sitename)
+func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
+	err := s.repoctlsvc.DeleteSite(ctx, siteID)
 	if err != nil {
 		return err
 	}
 	var delsiteEvent = mq.SiteUpdatedEvent{
-		Email:      email,
-		SiteName:   sitename,
+		SiteId:     siteID,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("del_site_server", delsiteEvent)

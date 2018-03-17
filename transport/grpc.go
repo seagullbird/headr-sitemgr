@@ -87,13 +87,13 @@ func (s *grpcServer) DeleteSite(ctx context.Context, req *pb.ProxyDeleteSiteRequ
 
 func encodeGRPCNewSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(endpoint.NewSiteRequest)
-	return &pb.CreateNewSiteRequest{Email: req.Email, Sitename: req.SiteName}, nil
+	return &pb.CreateNewSiteRequest{UserId: uint64(req.UserId), Sitename: req.SiteName}, nil
 }
 
 func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.CreateNewSiteRequest)
 	return endpoint.NewSiteRequest{
-		Email:    req.Email,
+		UserId:   uint(req.UserId),
 		SiteName: req.Sitename,
 	}, nil
 }
@@ -112,14 +112,13 @@ func decodeGRPCNewSiteResponse(_ context.Context, grpcReply interface{}) (interf
 
 func encodeGRPCDeleteSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(endpoint.DeleteSiteRequest)
-	return &pb.ProxyDeleteSiteRequest{Email: req.Email, Sitename: req.SiteName}, nil
+	return &pb.ProxyDeleteSiteRequest{SiteId: uint64(req.SiteId)}, nil
 }
 
 func decodeGRPCDeleteSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.ProxyDeleteSiteRequest)
 	return endpoint.DeleteSiteRequest{
-		Email:    req.Email,
-		SiteName: req.Sitename,
+		SiteId: uint(req.SiteId),
 	}, nil
 }
 

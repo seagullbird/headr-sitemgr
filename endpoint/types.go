@@ -1,17 +1,17 @@
 package endpoint
 
 type NewSiteRequest struct {
-	Email    string `json:"email"`
+	UserId   uint   `json:"user_id"`
 	SiteName string `json:"site_name"`
 }
 
 type NewSiteResponse struct {
-	Err error `json:"-"`
+	SiteId uint  `json:"site_id"`
+	Err    error `json:"-"`
 }
 
 type DeleteSiteRequest struct {
-	Email    string `json:"email"`
-	SiteName string `json:"site_name"`
+	SiteId uint `json:"site_id"`
 }
 
 type DeleteSiteResponse struct {

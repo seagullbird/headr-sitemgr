@@ -3,35 +3,49 @@ package transport
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/go-kit/kit/log"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
 	"github.com/seagullbird/headr-sitemgr/endpoint"
 	"net/http"
+	"strconv"
 )
 
 type errorWrapper struct {
 	Error string `json:"error"`
 }
 
+var (
+	// ErrBadRouting is returned when an expected path variable is missing.
+	// It always indicates programmer error.
+	ErrBadRouting = errors.New("inconsistent mapping between route and handler (programmer error)")
+)
+
 func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(errorEncoder),
 		httptransport.ServerErrorLogger(logger),
 	}
-	m := http.NewServeMux()
-	m.Handle("/create-new-site", httptransport.NewServer(
+
+	r := mux.NewRouter()
+
+	// POST 	/sites/			add a site
+	// DELETE	/sites/:id		remove the given site
+
+	r.Methods("POST").Path("/sites/").Handler(httptransport.NewServer(
 		endpoints.NewSiteEndpoint,
 		decodeHTTPNewSiteRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
-	m.Handle("/delete-site", httptransport.NewServer(
+	r.Methods("DELETE").Path("/sites/{id}").Handler(httptransport.NewServer(
 		endpoints.DeleteSiteEndpoint,
 		decodeHTTPDeleteSiteRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
-	return m
+	return r
 }
 
 func err2code(err error) int {
@@ -63,7 +77,14 @@ func encodeHTTPGenericResponse(ctx context.Context, w http.ResponseWriter, respo
 }
 
 func decodeHTTPDeleteSiteRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var req endpoint.DeleteSiteRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	return req, err
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, ErrBadRouting
+	}
+	i, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, ErrBadRouting
+	}
+	return endpoint.DeleteSiteRequest{SiteId: uint(i)}, nil
 }

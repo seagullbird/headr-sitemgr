@@ -6,11 +6,13 @@ package pb;
 service Repoctl {
     rpc NewSite (NewSiteRequest) returns (NewSiteReply) {}
     rpc DeleteSite (DeleteSiteRequest) returns (DeleteSiteReply) {}
+    rpc WritePost (WritePostRequest) returns (WritePostReply) {}
+    rpc RemovePost (RemovePostRequest) returns (RemovePostReply) {}
+    rpc ReadPost (ReadPostRequest) returns (ReadPostReply) {}
 }
 
 message NewSiteRequest {
-    string email = 1;
-    string sitename = 2;
+    uint64 site_id = 1;
 }
 
 message NewSiteReply {
@@ -18,10 +20,39 @@ message NewSiteReply {
 }
 
 message DeleteSiteRequest {
-    string email = 1;
-    string sitename = 2;
+    uint64 site_id = 1;
 }
 
 message DeleteSiteReply {
     string err = 1;
 }
+
+message WritePostRequest {
+    uint64 site_id = 1;
+    string filename = 2;
+    string content = 3;
+}
+
+message WritePostReply {
+    string err = 1;
+}
+
+message RemovePostRequest {
+    uint64 site_id = 1;
+    string filename = 2;
+}
+
+message RemovePostReply {
+    string err = 1;
+}
+
+message ReadPostRequest {
+    uint64 site_id = 1;
+    string filename = 2;
+}
+
+message ReadPostReply {
+    string content = 1;
+    string err = 2;
+}
+
