@@ -14,6 +14,7 @@ import (
 type Service interface {
 	NewSite(ctx context.Context, userID uint, sitename string) error
 	DeleteSite(ctx context.Context, siteID uint) error
+	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
 }
 
 func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher dispatch.Dispatcher, store db.Store) Service {
@@ -71,4 +72,8 @@ func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("del_site_server", delsiteEvent)
+}
+
+func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
+	return s.store.CheckSitenameExists(sitename)
 }

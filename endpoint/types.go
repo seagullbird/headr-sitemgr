@@ -17,3 +17,12 @@ type DeleteSiteRequest struct {
 type DeleteSiteResponse struct {
 	Err error `json:"-"`
 }
+
+type CheckSitenameExistsRequest struct {
+	Sitename string `json:"sitename"`
+}
+
+type CheckSitenameExistsResponse struct {
+	Exists bool  `json:"exists"`
+	Err    error `json:"-"`
+}

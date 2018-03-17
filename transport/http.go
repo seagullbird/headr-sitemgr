@@ -30,8 +30,9 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	// POST 	/sites/			add a site
-	// DELETE	/sites/:id		remove the given site
+	// POST 	/sites/							add a site
+	// DELETE	/sites/:id						remove the given site
+	// POST     /is-sitename-exists 			check if sitename already exists
 
 	r.Methods("POST").Path("/sites/").Handler(httptransport.NewServer(
 		endpoints.NewSiteEndpoint,
@@ -42,6 +43,12 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	r.Methods("DELETE").Path("/sites/{id}").Handler(httptransport.NewServer(
 		endpoints.DeleteSiteEndpoint,
 		decodeHTTPDeleteSiteRequest,
+		encodeHTTPGenericResponse,
+		options...,
+	))
+	r.Methods("POST").Path("/is-sitename-exists").Handler(httptransport.NewServer(
+		endpoints.CheckSitenameExistsEndpoint,
+		decodeHTTPCheckSitenameExistsRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
@@ -61,12 +68,6 @@ func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
 
-func decodeHTTPNewSiteRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var req endpoint.NewSiteRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	return req, err
-}
-
 func encodeHTTPGenericResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if f, ok := response.(endpoint.Failer); ok && f.Failed() != nil {
@@ -74,6 +75,12 @@ func encodeHTTPGenericResponse(ctx context.Context, w http.ResponseWriter, respo
 		return nil
 	}
 	return json.NewEncoder(w).Encode(response)
+}
+
+func decodeHTTPNewSiteRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var req endpoint.NewSiteRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	return req, err
 }
 
 func decodeHTTPDeleteSiteRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -87,4 +94,10 @@ func decodeHTTPDeleteSiteRequest(_ context.Context, r *http.Request) (interface{
 		return nil, ErrBadRouting
 	}
 	return endpoint.DeleteSiteRequest{SiteId: uint(i)}, nil
+}
+
+func decodeHTTPCheckSitenameExistsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var req endpoint.CheckSitenameExistsRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	return req, err
 }

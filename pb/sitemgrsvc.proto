@@ -7,15 +7,14 @@ service Sitemgr {
     // Create a new site.
     rpc NewSite (CreateNewSiteRequest) returns (CreateNewSiteReply) {}
     rpc DeleteSite (ProxyDeleteSiteRequest) returns (ProxyDeleteSiteReply) {}
+    rpc CheckSitenameExists (CheckSitenameExistsRequest) returns (CheckSitenameExistsReply) {}
 }
 
-// The new site request contains two parameters.
 message CreateNewSiteRequest {
     uint64 user_id = 1;
     string sitename = 2;
 }
 
-// The new site response contains the result of the creation.
 message CreateNewSiteReply {
     string err = 1;
 }
@@ -24,7 +23,15 @@ message ProxyDeleteSiteRequest {
     uint64 site_id = 1;
 }
 
-// The new site response contains the result of the creation.
 message ProxyDeleteSiteReply {
     string err = 1;
+}
+
+message CheckSitenameExistsRequest {
+    string sitename = 1;
+}
+
+message CheckSitenameExistsReply {
+    bool exists = 1;
+    string err = 2;
 }

@@ -8,8 +8,9 @@ import (
 )
 
 type Set struct {
-	NewSiteEndpoint    endpoint.Endpoint
-	DeleteSiteEndpoint endpoint.Endpoint
+	NewSiteEndpoint             endpoint.Endpoint
+	DeleteSiteEndpoint          endpoint.Endpoint
+	CheckSitenameExistsEndpoint endpoint.Endpoint
 }
 
 func New(svc service.Service, logger log.Logger) Set {
@@ -23,9 +24,15 @@ func New(svc service.Service, logger log.Logger) Set {
 		deletesiteEndpoint = MakeDeleteSiteEndpoint(svc)
 		deletesiteEndpoint = LoggingMiddleware(logger)(deletesiteEndpoint)
 	}
+	var checkSitenameExistsEndpoint endpoint.Endpoint
+	{
+		checkSitenameExistsEndpoint = MakeCheckSitenameExistsEndpoint(svc)
+		checkSitenameExistsEndpoint = LoggingMiddleware(logger)(checkSitenameExistsEndpoint)
+	}
 	return Set{
-		NewSiteEndpoint:    newsiteEndpoint,
-		DeleteSiteEndpoint: deletesiteEndpoint,
+		NewSiteEndpoint:             newsiteEndpoint,
+		DeleteSiteEndpoint:          deletesiteEndpoint,
+		CheckSitenameExistsEndpoint: checkSitenameExistsEndpoint,
 	}
 }
 
@@ -47,6 +54,15 @@ func (s Set) DeleteSite(ctx context.Context, siteID uint) error {
 	return response.Err
 }
 
+func (s Set) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
+	resp, err := s.CheckSitenameExistsEndpoint(ctx, CheckSitenameExistsRequest{Sitename: sitename})
+	if err != nil {
+		return true, err
+	}
+	response := resp.(CheckSitenameExistsResponse)
+	return response.Exists, response.Err
+}
+
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
@@ -63,8 +79,18 @@ func MakeDeleteSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
+func MakeCheckSitenameExistsEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(CheckSitenameExistsRequest)
+		exists, err := svc.CheckSitenameExists(ctx, req.Sitename)
+		return CheckSitenameExistsResponse{Exists: exists, Err: err}, err
+	}
+}
+
 type Failer interface {
 	Failed() error
 }
 
-func (r NewSiteResponse) Failed() error { return r.Err }
+func (r NewSiteResponse) Failed() error             { return r.Err }
+func (r DeleteSiteResponse) Failed() error          { return r.Err }
+func (r CheckSitenameExistsResponse) Failed() error { return r.Err }

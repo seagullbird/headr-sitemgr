@@ -11,6 +11,7 @@ type Store interface {
 	DeleteSite(site *Site) error
 	GetSite(id uint) (*Site, error)
 	PatchSite(site *Site) error
+	CheckSitenameExists(sitename string) (bool, error)
 }
 
 type databaseStore struct {
@@ -46,4 +47,12 @@ func (s *databaseStore) GetSite(id uint) (*Site, error) {
 
 func (s *databaseStore) PatchSite(site *Site) error {
 	return nil
+}
+
+func (s *databaseStore) CheckSitenameExists(sitename string) (bool, error) {
+	// exists, return true
+	// not exists, return false
+	var site Site
+	s.db.Where("sitename = ?", sitename).First(&site)
+	return site != Site{}, nil
 }

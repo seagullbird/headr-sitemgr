@@ -34,3 +34,9 @@ func (mw loggingMiddleware) DeleteSite(ctx context.Context, siteID uint) (err er
 	mw.logger.Log("method", "DeleteSite", "siteID", siteID, "err", err)
 	return
 }
+
+func (mw loggingMiddleware) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
+	exists, err := mw.next.CheckSitenameExists(ctx, sitename)
+	mw.logger.Log("method", "CheckSitenameExists", "sitename", sitename, "err", err)
+	return exists, err
+}
