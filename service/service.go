@@ -64,10 +64,15 @@ func (s basicService) NewSite(ctx context.Context, userID uint, sitename string)
 }
 
 func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
+	// delete database item
+	site, _ := s.store.GetSite(siteID)
+	s.store.DeleteSite(site)
+	// delete static files
 	err := s.repoctlsvc.DeleteSite(ctx, siteID)
 	if err != nil {
 		return err
 	}
+	// delete server service
 	var delsiteEvent = mq.SiteUpdatedEvent{
 		SiteId:     siteID,
 		ReceivedOn: time.Now().Unix(),
