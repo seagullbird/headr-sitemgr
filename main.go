@@ -7,6 +7,7 @@ import (
 	"github.com/seagullbird/headr-common/mq/dispatch"
 	repoctltransport "github.com/seagullbird/headr-repoctl/transport"
 	"github.com/seagullbird/headr-sitemgr/config"
+	"github.com/seagullbird/headr-sitemgr/db"
 	"github.com/seagullbird/headr-sitemgr/endpoint"
 	"github.com/seagullbird/headr-sitemgr/pb"
 	"github.com/seagullbird/headr-sitemgr/service"
@@ -49,10 +50,12 @@ func main() {
 		return
 	}
 
+	// database
+	store := db.New(logger)
 	// repoctl service
 	repoctlsvc := repoctltransport.NewGRPCClient(conn, logger)
 	var (
-		service    = service.New(repoctlsvc, logger, dispatcher)
+		service    = service.New(repoctlsvc, logger, dispatcher, store)
 		endpoints  = endpoint.New(service, logger)
 		grpcServer = transport.NewGRPCServer(endpoints, logger)
 	)
