@@ -32,3 +32,13 @@ type CheckSitenameExistsResponse struct {
 	Exists bool  `json:"exists"`
 	Err    error `json:"-"`
 }
+
+// GetSiteIDByUserIDRequest collects the request parameters for the GetSiteIDByUserID method.
+type GetSiteIDByUserIDRequest struct {
+}
+
+// GetSiteIDByUserIDResponse collects the response values for the GetSiteIDByUserID method.
+type GetSiteIDByUserIDResponse struct {
+	SiteID uint  `json:"site_id"`
+	Err    error `json:"-"`
+}

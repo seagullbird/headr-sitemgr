@@ -37,6 +37,7 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	// POST 	/sites/							add a site
 	// DELETE	/sites/:id						remove the given site
 	// POST     /is-sitename-exists 			check if sitename already exists
+	// GET		/site-id						get a user's site's id for the given user id
 
 	r.Methods("POST").Path("/sites/").Handler(httptransport.NewServer(
 		endpoints.NewSiteEndpoint,
@@ -53,6 +54,12 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	r.Methods("POST").Path("/is-sitename-exists").Handler(httptransport.NewServer(
 		endpoints.CheckSitenameExistsEndpoint,
 		decodeHTTPCheckSitenameExistsRequest,
+		encodeHTTPGenericResponse,
+		options...,
+	))
+	r.Methods("GET").Path("/site-id/").Handler(httptransport.NewServer(
+		endpoints.GetSiteIDByUserIDEndpoint,
+		decodeHTTPGetSiteIDByUserIDRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
@@ -101,6 +108,11 @@ func decodeHTTPDeleteSiteRequest(_ context.Context, r *http.Request) (interface{
 		return nil, ErrBadRouting
 	}
 	return endpoint.DeleteSiteRequest{SiteID: uint(i)}, nil
+}
+
+func decodeHTTPGetSiteIDByUserIDRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	// UserID will not be set here but extracted from access_token after access_token is verified in endpoint.AuthMiddleware
+	return endpoint.GetSiteIDByUserIDRequest{}, nil
 }
 
 func decodeHTTPCheckSitenameExistsRequest(_ context.Context, r *http.Request) (interface{}, error) {

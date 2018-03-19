@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	stdjwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-kit/kit/auth/jwt"
 	"github.com/go-kit/kit/log"
 	"github.com/seagullbird/headr-common/mq"
 	"github.com/seagullbird/headr-common/mq/dispatch"
@@ -16,6 +18,7 @@ type Service interface {
 	NewSite(ctx context.Context, userID uint, sitename string) (uint, error)
 	DeleteSite(ctx context.Context, siteID uint) error
 	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
+	GetSiteIDByUserID(ctx context.Context) (uint, error)
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -44,7 +47,7 @@ func newBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Disp
 
 func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
 	site := &db.Site{
-		UserID:   userID,
+		//UserID:   userID,
 		Theme:    config.InitialTheme,
 		Sitename: sitename,
 	}
@@ -85,20 +88,30 @@ func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) 
 	return s.store.CheckSitenameExists(sitename)
 }
 
+func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"]
+	return s.store.GetSiteIDByUserID(userID.(string))
+}
+
 // EmptyService is only used for transport tests
 type EmptyService struct{}
 
-// NewSite inplements Service.NewSite
+// NewSite implements Service.NewSite
 func (e EmptyService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
 	return 0, nil
 }
 
-// DeleteSite inplements Service.DeleteSite
+// DeleteSite implements Service.DeleteSite
 func (e EmptyService) DeleteSite(ctx context.Context, siteID uint) error {
 	return nil
 }
 
-// CheckSitenameExists inplements Service.CheckSitenameExists
+// CheckSitenameExists implements Service.CheckSitenameExists
 func (e EmptyService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
 	return true, nil
+}
+
+// GetSiteIDByUserID implements Service.GetSiteIDByUserID
+func (e EmptyService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
+	return 0, nil
 }

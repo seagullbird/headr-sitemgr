@@ -14,6 +14,7 @@ type Set struct {
 	NewSiteEndpoint             endpoint.Endpoint
 	DeleteSiteEndpoint          endpoint.Endpoint
 	CheckSitenameExistsEndpoint endpoint.Endpoint
+	GetSiteIDByUserIDEndpoint   endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server.
@@ -22,6 +23,7 @@ func New(svc service.Service, logger log.Logger) Set {
 		NewSiteEndpoint:             Middlewares(MakeNewSiteEndpoint(svc), logger),
 		DeleteSiteEndpoint:          Middlewares(MakeDeleteSiteEndpoint(svc), logger),
 		CheckSitenameExistsEndpoint: Middlewares(MakeCheckSitenameExistsEndpoint(svc), logger),
+		GetSiteIDByUserIDEndpoint:   Middlewares(MakeGetSiteIDByUserIDEndpoint(svc), logger),
 	}
 }
 
@@ -58,6 +60,17 @@ func (s Set) CheckSitenameExists(ctx context.Context, sitename string) (bool, er
 	return response.Exists, response.Err
 }
 
+// GetSiteIDByUserID implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) GetSiteIDByUserID(ctx context.Context) (uint, error) {
+	resp, err := s.GetSiteIDByUserIDEndpoint(ctx, GetSiteIDByUserIDRequest{})
+	if err != nil {
+		return 0, err
+	}
+	response := resp.(GetSiteIDByUserIDResponse)
+	return response.SiteID, response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -85,6 +98,14 @@ func MakeCheckSitenameExistsEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
+// MakeGetSiteIDByUserIDEndpoint constructs a GetSiteIDByUserID endpoint wrapping the service.
+func MakeGetSiteIDByUserIDEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		siteID, err := svc.GetSiteIDByUserID(ctx)
+		return GetSiteIDByUserIDResponse{SiteID: siteID, Err: err}, err
+	}
+}
+
 // Failer is an interface that should be implemented by response types.
 // Response encoders can check if responses are Failer, and if so if they've
 // failed, and if so encode them using a separate write path based on the error.
@@ -100,3 +121,6 @@ func (r DeleteSiteResponse) Failed() error { return r.Err }
 
 // Failed implements Failer.
 func (r CheckSitenameExistsResponse) Failed() error { return r.Err }
+
+// Failed implements Failer.
+func (r GetSiteIDByUserIDResponse) Failed() error { return r.Err }

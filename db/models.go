@@ -10,7 +10,7 @@ import (
 // Theme is the name of the theme the site is using
 type Site struct {
 	gorm.Model
-	UserID   uint   `json:"user_id"`
+	UserID   string `json:"user_id"`
 	Sitename string `json:"sitename"`
 	Theme    string `json:"theme"`
 }

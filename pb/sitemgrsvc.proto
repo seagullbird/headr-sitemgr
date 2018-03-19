@@ -4,10 +4,10 @@ package pb;
 
 // The Sitemgr service definition.
 service Sitemgr {
-    // Create a new site.
     rpc NewSite (CreateNewSiteRequest) returns (CreateNewSiteReply) {}
     rpc DeleteSite (ProxyDeleteSiteRequest) returns (ProxyDeleteSiteReply) {}
     rpc CheckSitenameExists (CheckSitenameExistsRequest) returns (CheckSitenameExistsReply) {}
+    rpc GetSiteIDByUserID (GetSiteIDByUserIDRequest) returns (GetSiteIDByUserIDReply) {}
 }
 
 message CreateNewSiteRequest {
@@ -34,5 +34,13 @@ message CheckSitenameExistsRequest {
 
 message CheckSitenameExistsReply {
     bool exists = 1;
+    string err = 2;
+}
+
+message GetSiteIDByUserIDRequest {
+}
+
+message GetSiteIDByUserIDReply {
+    uint64 site_id = 1;
     string err = 2;
 }

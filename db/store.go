@@ -14,6 +14,7 @@ type Store interface {
 	GetSite(id uint) (*Site, error)
 	PatchSite(site *Site) error
 	CheckSitenameExists(sitename string) (bool, error)
+	GetSiteIDByUserID(userID string) (uint, error)
 }
 
 type databaseStore struct {
@@ -58,4 +59,10 @@ func (s *databaseStore) CheckSitenameExists(sitename string) (bool, error) {
 	var site Site
 	s.db.Where("sitename = ?", sitename).First(&site)
 	return site != Site{}, nil
+}
+
+func (s *databaseStore) GetSiteIDByUserID(userID string) (uint, error) {
+	var site Site
+	s.db.Where("user_id = ?", userID).First(&site)
+	return site.Model.ID, nil
 }
