@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/go-kit/kit/auth/jwt"
 	"github.com/go-kit/kit/log"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
@@ -26,6 +27,7 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(errorEncoder),
 		httptransport.ServerErrorLogger(logger),
+		httptransport.ServerBefore(jwt.HTTPToContext()),
 	}
 
 	r := mux.NewRouter()
@@ -56,7 +58,9 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 }
 
 func err2code(err error) int {
-	if err != nil {
+	if err == ErrBadRouting {
+		return http.StatusBadRequest
+	} else if err != nil {
 		return http.StatusInternalServerError
 	}
 	return http.StatusOK

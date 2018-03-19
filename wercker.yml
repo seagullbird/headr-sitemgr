@@ -1,0 +1,16 @@
+box:
+  id: golang:1.9
+
+build:
+  steps:
+    - wercker/golint:
+      exclude: vendor
+    - setup-go-workspace:
+        package-dir: github.com/seagullbird/headr-sitemgr
+    - script:
+        name: env
+        code: env
+    - script:
+        name: go test
+        code: |
+          go test -v ./...

@@ -82,3 +82,18 @@ func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
 func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
 	return s.store.CheckSitenameExists(sitename)
 }
+
+// EmptyService is only used for transport tests
+type EmptyService struct{}
+
+func (e EmptyService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
+	return 0, nil
+}
+
+func (e EmptyService) DeleteSite(ctx context.Context, siteID uint) error {
+	return nil
+}
+
+func (e EmptyService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
+	return true, nil
+}

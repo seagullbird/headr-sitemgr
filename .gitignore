@@ -2,3 +2,4 @@
 .idea
 sitemgr
 tmp.yaml
+.wercker

@@ -14,25 +14,10 @@ type Set struct {
 }
 
 func New(svc service.Service, logger log.Logger) Set {
-	var newsiteEndpoint endpoint.Endpoint
-	{
-		newsiteEndpoint = MakeNewSiteEndpoint(svc)
-		newsiteEndpoint = LoggingMiddleware(logger)(newsiteEndpoint)
-	}
-	var deletesiteEndpoint endpoint.Endpoint
-	{
-		deletesiteEndpoint = MakeDeleteSiteEndpoint(svc)
-		deletesiteEndpoint = LoggingMiddleware(logger)(deletesiteEndpoint)
-	}
-	var checkSitenameExistsEndpoint endpoint.Endpoint
-	{
-		checkSitenameExistsEndpoint = MakeCheckSitenameExistsEndpoint(svc)
-		checkSitenameExistsEndpoint = LoggingMiddleware(logger)(checkSitenameExistsEndpoint)
-	}
 	return Set{
-		NewSiteEndpoint:             newsiteEndpoint,
-		DeleteSiteEndpoint:          deletesiteEndpoint,
-		CheckSitenameExistsEndpoint: checkSitenameExistsEndpoint,
+		NewSiteEndpoint:             Middlewares(MakeNewSiteEndpoint(svc), logger),
+		DeleteSiteEndpoint:          Middlewares(MakeDeleteSiteEndpoint(svc), logger),
+		CheckSitenameExistsEndpoint: Middlewares(MakeCheckSitenameExistsEndpoint(svc), logger),
 	}
 }
 
