@@ -15,7 +15,7 @@ import (
 
 // Service describes a service that deals with site management operations (sitemgr).
 type Service interface {
-	NewSite(ctx context.Context, userID uint, sitename string) (uint, error)
+	NewSite(ctx context.Context, sitename string) (uint, error)
 	DeleteSite(ctx context.Context, siteID uint) error
 	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
 	GetSiteIDByUserID(ctx context.Context) (uint, error)
@@ -45,9 +45,10 @@ func newBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Disp
 	}
 }
 
-func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
+func (s basicService) NewSite(ctx context.Context, sitename string) (uint, error) {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
 	site := &db.Site{
-		//UserID:   userID,
+		UserID:   userID,
 		Theme:    config.InitialTheme,
 		Sitename: sitename,
 	}
@@ -97,7 +98,7 @@ func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 type EmptyService struct{}
 
 // NewSite implements Service.NewSite
-func (e EmptyService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
+func (e EmptyService) NewSite(ctx context.Context, sitename string) (uint, error) {
 	return 0, nil
 }
 

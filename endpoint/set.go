@@ -29,8 +29,8 @@ func New(svc service.Service, logger log.Logger) Set {
 
 // NewSite implements the service interface, so Set may be used as a service.
 // This is primarily useful in the context of a client library.
-func (s Set) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
-	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{UserID: userID, SiteName: sitename})
+func (s Set) NewSite(ctx context.Context, sitename string) (uint, error) {
+	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{SiteName: sitename})
 	if err != nil {
 		return 0, err
 	}
@@ -75,7 +75,7 @@ func (s Set) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
-		id, err := svc.NewSite(ctx, req.UserID, req.SiteName)
+		id, err := svc.NewSite(ctx, req.SiteName)
 		return NewSiteResponse{SiteID: id, Err: err}, err
 	}
 }

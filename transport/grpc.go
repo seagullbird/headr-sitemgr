@@ -155,13 +155,12 @@ func (s *grpcServer) GetSiteIDByUserID(ctx context.Context, req *pb.GetSiteIDByU
 // NewSite
 func encodeGRPCNewSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(endpoint.NewSiteRequest)
-	return &pb.CreateNewSiteRequest{UserId: uint64(req.UserID), Sitename: req.SiteName}, nil
+	return &pb.CreateNewSiteRequest{Sitename: req.SiteName}, nil
 }
 
 func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.CreateNewSiteRequest)
 	return endpoint.NewSiteRequest{
-		UserID:   uint(req.UserId),
 		SiteName: req.Sitename,
 	}, nil
 }

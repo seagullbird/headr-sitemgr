@@ -2,7 +2,6 @@ package endpoint
 
 // NewSiteRequest collects the request parameters for the NewSite method.
 type NewSiteRequest struct {
-	UserID   uint   `json:"user_id"`
 	SiteName string `json:"site_name"`
 }
 

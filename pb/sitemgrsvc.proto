@@ -11,8 +11,7 @@ service Sitemgr {
 }
 
 message CreateNewSiteRequest {
-    uint64 user_id = 1;
-    string sitename = 2;
+    string sitename = 1;
 }
 
 message CreateNewSiteReply {
