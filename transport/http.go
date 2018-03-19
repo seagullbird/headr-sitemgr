@@ -23,6 +23,8 @@ var (
 	ErrBadRouting = errors.New("inconsistent mapping between route and handler (programmer error)")
 )
 
+// NewHTTPHandler returns an HTTP handler that makes a set of endpoints
+// available on predefined paths.
 func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorEncoder(errorEncoder),
@@ -58,12 +60,13 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 }
 
 func err2code(err error) int {
-	if err == ErrBadRouting {
+	switch err {
+	case jwt.ErrTokenContextMissing, jwt.ErrTokenExpired, jwt.ErrTokenInvalid, jwt.ErrTokenMalformed, jwt.ErrTokenNotActive, jwt.ErrUnexpectedSigningMethod:
+		return http.StatusForbidden
+	case ErrBadRouting:
 		return http.StatusBadRequest
-	} else if err != nil {
-		return http.StatusInternalServerError
 	}
-	return http.StatusOK
+	return http.StatusInternalServerError
 }
 
 func errorEncoder(_ context.Context, err error, w http.ResponseWriter) {
@@ -97,7 +100,7 @@ func decodeHTTPDeleteSiteRequest(_ context.Context, r *http.Request) (interface{
 	if err != nil {
 		return nil, ErrBadRouting
 	}
-	return endpoint.DeleteSiteRequest{SiteId: uint(i)}, nil
+	return endpoint.DeleteSiteRequest{SiteID: uint(i)}, nil
 }
 
 func decodeHTTPCheckSitenameExistsRequest(_ context.Context, r *http.Request) (interface{}, error) {

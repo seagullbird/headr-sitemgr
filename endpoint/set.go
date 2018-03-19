@@ -7,12 +7,16 @@ import (
 	"github.com/seagullbird/headr-sitemgr/service"
 )
 
+// Set collects all of the endpoints that compose an sitemgr service. It's meant to
+// be used as a helper struct, to collect all of the endpoints into a single
+// parameter.
 type Set struct {
 	NewSiteEndpoint             endpoint.Endpoint
 	DeleteSiteEndpoint          endpoint.Endpoint
 	CheckSitenameExistsEndpoint endpoint.Endpoint
 }
 
+// New returns a Set that wraps the provided server.
 func New(svc service.Service, logger log.Logger) Set {
 	return Set{
 		NewSiteEndpoint:             Middlewares(MakeNewSiteEndpoint(svc), logger),
@@ -21,17 +25,21 @@ func New(svc service.Service, logger log.Logger) Set {
 	}
 }
 
+// NewSite implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
 func (s Set) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
-	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{UserId: userID, SiteName: sitename})
+	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{UserID: userID, SiteName: sitename})
 	if err != nil {
 		return 0, err
 	}
 	response := resp.(NewSiteResponse)
-	return response.SiteId, response.Err
+	return response.SiteID, response.Err
 }
 
+// DeleteSite implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
 func (s Set) DeleteSite(ctx context.Context, siteID uint) error {
-	resp, err := s.DeleteSiteEndpoint(ctx, DeleteSiteRequest{SiteId: siteID})
+	resp, err := s.DeleteSiteEndpoint(ctx, DeleteSiteRequest{SiteID: siteID})
 	if err != nil {
 		return err
 	}
@@ -39,6 +47,8 @@ func (s Set) DeleteSite(ctx context.Context, siteID uint) error {
 	return response.Err
 }
 
+// CheckSitenameExists implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
 func (s Set) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
 	resp, err := s.CheckSitenameExistsEndpoint(ctx, CheckSitenameExistsRequest{Sitename: sitename})
 	if err != nil {
@@ -48,22 +58,25 @@ func (s Set) CheckSitenameExists(ctx context.Context, sitename string) (bool, er
 	return response.Exists, response.Err
 }
 
+// MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
-		id, err := svc.NewSite(ctx, req.UserId, req.SiteName)
-		return NewSiteResponse{SiteId: id, Err: err}, err
+		id, err := svc.NewSite(ctx, req.UserID, req.SiteName)
+		return NewSiteResponse{SiteID: id, Err: err}, err
 	}
 }
 
+// MakeDeleteSiteEndpoint constructs a DeleteSite endpoint wrapping the service.
 func MakeDeleteSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(DeleteSiteRequest)
-		err = svc.DeleteSite(ctx, req.SiteId)
+		err = svc.DeleteSite(ctx, req.SiteID)
 		return DeleteSiteResponse{Err: err}, err
 	}
 }
 
+// MakeCheckSitenameExistsEndpoint constructs a CheckSitenameExists endpoint wrapping the service.
 func MakeCheckSitenameExistsEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(CheckSitenameExistsRequest)
@@ -72,10 +85,18 @@ func MakeCheckSitenameExistsEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
+// Failer is an interface that should be implemented by response types.
+// Response encoders can check if responses are Failer, and if so if they've
+// failed, and if so encode them using a separate write path based on the error.
 type Failer interface {
 	Failed() error
 }
 
-func (r NewSiteResponse) Failed() error             { return r.Err }
-func (r DeleteSiteResponse) Failed() error          { return r.Err }
+// Failed implements Failer.
+func (r NewSiteResponse) Failed() error { return r.Err }
+
+// Failed implements Failer.
+func (r DeleteSiteResponse) Failed() error { return r.Err }
+
+// Failed implements Failer.
 func (r CheckSitenameExistsResponse) Failed() error { return r.Err }

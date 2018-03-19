@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+// LoggingMiddleware returns an endpoint middleware that logs the
+// duration of each invocation, and the resulting error, if any.
 func LoggingMiddleware(logger log.Logger) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -24,6 +26,8 @@ func LoggingMiddleware(logger log.Logger) endpoint.Middleware {
 	}
 }
 
+// AuthMiddleware returns an endpoint middleware that parse and verify
+// a JWT token passed into the context, and that returns errors if the verification failed.
 func AuthMiddleware() endpoint.Middleware {
 	getPemCert := func(token *stdjwt.Token) (string, error) {
 		type JSONWebKeys struct {
@@ -40,7 +44,7 @@ func AuthMiddleware() endpoint.Middleware {
 		}
 
 		cert := ""
-		resp, err := http.Get(config.AUTH0_DOMAIN + "/.well-known/jwks.json")
+		resp, err := http.Get(config.Auth0Domain + "/.well-known/jwks.json")
 
 		if err != nil {
 			return cert, err
@@ -62,7 +66,7 @@ func AuthMiddleware() endpoint.Middleware {
 		}
 
 		if cert == "" {
-			err := errors.New("Unable to find appropriate key.")
+			err := errors.New("unable to find appropriate key")
 			return cert, err
 		}
 
@@ -71,16 +75,16 @@ func AuthMiddleware() endpoint.Middleware {
 
 	keyFunc := func(token *stdjwt.Token) (interface{}, error) {
 		// Verify 'aud' claim
-		aud := config.AUTH0_AUDIENCE
+		aud := config.Auth0Audience
 		checkAud := token.Claims.(stdjwt.MapClaims).VerifyAudience(aud, false)
 		if !checkAud {
-			return token, errors.New("Invalid audience.")
+			return token, errors.New("invalid audience")
 		}
 		// Verify 'iss' claim
-		iss := config.AUTH0_DOMAIN + "/"
+		iss := config.Auth0Domain + "/"
 		checkIss := token.Claims.(stdjwt.MapClaims).VerifyIssuer(iss, false)
 		if !checkIss {
-			return token, errors.New("Invalid issuer.")
+			return token, errors.New("invalid issuer")
 		}
 
 		cert, err := getPemCert(token)
@@ -95,6 +99,8 @@ func AuthMiddleware() endpoint.Middleware {
 	return jwt.NewParser(keyFunc, stdjwt.SigningMethodRS256, jwt.MapClaimsFactory)
 }
 
+// Middlewares chains all middlewares together, returning the final endpoint.
+// This is just a convenient method that helps in clearing up codes in endpoints.New
 func Middlewares(e endpoint.Endpoint, logger log.Logger) endpoint.Endpoint {
 	chain := endpoint.Chain(AuthMiddleware(), LoggingMiddleware(logger))
 	return chain(e)

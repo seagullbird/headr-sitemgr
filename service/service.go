@@ -11,16 +11,18 @@ import (
 	"time"
 )
 
+// Service describes a service that deals with site management operations (sitemgr).
 type Service interface {
 	NewSite(ctx context.Context, userID uint, sitename string) (uint, error)
 	DeleteSite(ctx context.Context, siteID uint) error
 	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
 }
 
+// New returns a basic Service with all of the expected middlewares wired in.
 func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher dispatch.Dispatcher, store db.Store) Service {
 	var svc Service
 	{
-		svc = NewBasicService(repoctlsvc, dispatcher, store)
+		svc = newBasicService(repoctlsvc, dispatcher, store)
 		svc = LoggingMiddleware(logger)(svc)
 	}
 	return svc
@@ -32,7 +34,7 @@ type basicService struct {
 	store      db.Store
 }
 
-func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Dispatcher, store db.Store) basicService {
+func newBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Dispatcher, store db.Store) basicService {
 	return basicService{
 		repoctlsvc: repoctlsvc,
 		dispatcher: dispatcher,
@@ -42,7 +44,7 @@ func NewBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Disp
 
 func (s basicService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
 	site := &db.Site{
-		UserId:   userID,
+		UserID:   userID,
 		Theme:    config.InitialTheme,
 		Sitename: sitename,
 	}
@@ -86,14 +88,17 @@ func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) 
 // EmptyService is only used for transport tests
 type EmptyService struct{}
 
+// NewSite inplements Service.NewSite
 func (e EmptyService) NewSite(ctx context.Context, userID uint, sitename string) (uint, error) {
 	return 0, nil
 }
 
+// DeleteSite inplements Service.DeleteSite
 func (e EmptyService) DeleteSite(ctx context.Context, siteID uint) error {
 	return nil
 }
 
+// CheckSitenameExists inplements Service.CheckSitenameExists
 func (e EmptyService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
 	return true, nil
 }
