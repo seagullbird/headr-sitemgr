@@ -76,14 +76,14 @@
 [[projects]]
   branch = "master"
   name = "github.com/seagullbird/headr-common"
-  packages = ["mq","mq/dispatch"]
-  revision = "740809e0ead032baadb5663f31b96eed1fd37a87"
+  packages = ["mq","mq/client","mq/dispatch"]
+  revision = "13bebfd428e5f0b241a385319b9f12bdb1e4d911"
 
 [[projects]]
   branch = "master"
   name = "github.com/seagullbird/headr-repoctl"
   packages = ["config","endpoint","pb","service","transport"]
-  revision = "d856b89b71befcfa3c733e36c66bdcb3e7af8015"
+  revision = "f4f607828b276c61f8a2dac017aa6e1a1520f2a2"
 
 [[projects]]
   branch = "master"
@@ -118,6 +118,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5a2c4fbc4675b019ab796fd6cdd88b9a90a2640885379d5b07decb7dec4e2bc4"
+  inputs-digest = "928190b7b150f93b2d2cd038f212ebe215cc17103d0fabc6c880840529934246"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -61,7 +61,7 @@ func (s basicService) NewSite(ctx context.Context, sitename string) (uint, error
 		return 0, err
 	}
 	var newsiteEvent = mq.SiteUpdatedEvent{
-		SiteId:     site.Model.ID,
+		SiteID:     site.Model.ID,
 		Theme:      site.Theme,
 		ReceivedOn: time.Now().Unix(),
 	}
@@ -79,7 +79,7 @@ func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
 	}
 	// delete server service
 	var delsiteEvent = mq.SiteUpdatedEvent{
-		SiteId:     siteID,
+		SiteID:     siteID,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("del_site_server", delsiteEvent)
