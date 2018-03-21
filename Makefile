@@ -1,6 +1,6 @@
 GOARCH?=amd64
 GOOS?=linux
-APP?=sitemgr
+APP?=./build/sitemgr
 PROJECT?=github.com/seagullbird/headr-sitemgr
 COMMIT?=$(shell git rev-parse --short HEAD)
 PORT?=8688
@@ -15,7 +15,7 @@ build: clean
 	-o ${APP}
 
 container: build
-	docker build -t sitemgr:${COMMIT} .
+	docker build -t sitemgr:${COMMIT} ./build/
 
 minikube: container
 	cat k8s/k8s.yaml | \
