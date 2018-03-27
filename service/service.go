@@ -97,26 +97,3 @@ func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"]
 	return s.store.GetSiteIDByUserID(userID.(string))
 }
-
-// EmptyService is only used for transport tests
-type EmptyService struct{}
-
-// NewSite implements Service.NewSite
-func (e EmptyService) NewSite(ctx context.Context, sitename string) (uint, error) {
-	return 0, nil
-}
-
-// DeleteSite implements Service.DeleteSite
-func (e EmptyService) DeleteSite(ctx context.Context, siteID uint) error {
-	return nil
-}
-
-// CheckSitenameExists implements Service.CheckSitenameExists
-func (e EmptyService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
-	return true, nil
-}
-
-// GetSiteIDByUserID implements Service.GetSiteIDByUserID
-func (e EmptyService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
-	return 0, nil
-}

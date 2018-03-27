@@ -76,7 +76,7 @@ func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
 		id, err := svc.NewSite(ctx, req.SiteName)
-		return NewSiteResponse{SiteID: id, Err: err}, err
+		return NewSiteResponse{SiteID: id, Err: err}, nil
 	}
 }
 
@@ -85,7 +85,7 @@ func MakeDeleteSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(DeleteSiteRequest)
 		err = svc.DeleteSite(ctx, req.SiteID)
-		return DeleteSiteResponse{Err: err}, err
+		return DeleteSiteResponse{Err: err}, nil
 	}
 }
 
@@ -94,7 +94,7 @@ func MakeCheckSitenameExistsEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(CheckSitenameExistsRequest)
 		exists, err := svc.CheckSitenameExists(ctx, req.Sitename)
-		return CheckSitenameExistsResponse{Exists: exists, Err: err}, err
+		return CheckSitenameExistsResponse{Exists: exists, Err: err}, nil
 	}
 }
 
@@ -102,7 +102,7 @@ func MakeCheckSitenameExistsEndpoint(svc service.Service) endpoint.Endpoint {
 func MakeGetSiteIDByUserIDEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		siteID, err := svc.GetSiteIDByUserID(ctx)
-		return GetSiteIDByUserIDResponse{SiteID: siteID, Err: err}, err
+		return GetSiteIDByUserIDResponse{SiteID: siteID, Err: err}, nil
 	}
 }
 
