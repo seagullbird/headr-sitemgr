@@ -1,9 +1,13 @@
 package endpoint_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"github.com/go-kit/kit/auth/jwt"
+	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
+	"github.com/seagullbird/headr-common/auth"
 	"github.com/seagullbird/headr-sitemgr/endpoint"
 	svcmock "github.com/seagullbird/headr-sitemgr/service/mock"
 	"testing"
@@ -14,13 +18,14 @@ func TestSet(t *testing.T) {
 	mockctrl := gomock.NewController(t)
 	defer mockctrl.Finish()
 	mockSvc := svcmock.NewMockService(mockctrl)
+	var buf bytes.Buffer
+	logger := log.NewLogfmtLogger(&buf)
+	endpoints := endpoint.New(mockSvc, logger)
 
-	endpoints := endpoint.Set{
-		NewSiteEndpoint:             endpoint.MakeNewSiteEndpoint(mockSvc),
-		DeleteSiteEndpoint:          endpoint.MakeDeleteSiteEndpoint(mockSvc),
-		CheckSitenameExistsEndpoint: endpoint.MakeCheckSitenameExistsEndpoint(mockSvc),
-		GetSiteIDByUserIDEndpoint:   endpoint.MakeGetSiteIDByUserIDEndpoint(mockSvc),
-	}
+	// Login
+	ctx := context.Background()
+	accessToken := auth.Login()
+	ctx = context.WithValue(ctx, jwt.JWTTokenContextKey, accessToken)
 
 	dummyError := errors.New("dummy error")
 	tests := []struct {
@@ -51,7 +56,6 @@ func TestSet(t *testing.T) {
 			mockSvc.EXPECT().GetSiteIDByUserID(gomock.Any()).Return(tt.rets["GetSiteIDByUserID"]...).Times(times)
 
 			t.Run("NewSite", func(t *testing.T) {
-				ctx := context.Background()
 				sitename := "sitename"
 				setSiteID, setErr := endpoints.NewSite(ctx, sitename)
 				svcSiteID, svcErr := mockSvc.NewSite(ctx, sitename)
@@ -60,7 +64,6 @@ func TestSet(t *testing.T) {
 				}
 			})
 			t.Run("DeleteSite", func(t *testing.T) {
-				ctx := context.Background()
 				siteID := uint(1)
 				setErr := endpoints.DeleteSite(ctx, siteID)
 				svcErr := mockSvc.DeleteSite(ctx, siteID)
@@ -70,7 +73,6 @@ func TestSet(t *testing.T) {
 				}
 			})
 			t.Run("CheckSitenameExists", func(t *testing.T) {
-				ctx := context.Background()
 				sitename := "sitename"
 				setOutput, setErr := endpoints.CheckSitenameExists(ctx, sitename)
 				svcOutput, svcErr := mockSvc.CheckSitenameExists(ctx, sitename)
@@ -79,7 +81,6 @@ func TestSet(t *testing.T) {
 				}
 			})
 			t.Run("GetSiteIDByUserID", func(t *testing.T) {
-				ctx := context.Background()
 				setSiteID, setErr := endpoints.GetSiteIDByUserID(ctx)
 				svcSiteID, svcErr := mockSvc.GetSiteIDByUserID(ctx)
 				if setErr != svcErr {
