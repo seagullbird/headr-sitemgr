@@ -28,3 +28,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/seagullbird/headr-repoctl"
+
+[[constraint]]
+  name = "github.com/golang/mock"
+  branch = "master"

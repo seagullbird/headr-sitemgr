@@ -19,3 +19,8 @@ func LoggingMiddleware(logger log.Logger) endpoint.Middleware {
 		}
 	}
 }
+
+func Middlewares(e endpoint.Endpoint, logger log.Logger) endpoint.Endpoint {
+	chain := endpoint.Chain(LoggingMiddleware(logger))
+	return chain(e)
+}

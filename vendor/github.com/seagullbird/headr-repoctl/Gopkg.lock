@@ -26,6 +26,12 @@
   version = "v1.7.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/golang/mock"
+  packages = ["gomock"]
+  revision = "58cd061d09382b6011f84c1291ebe50ef2e25bab"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
   revision = "925541529c1fa6821df4e44ce2723319eb2be768"
@@ -40,8 +46,8 @@
 [[projects]]
   branch = "master"
   name = "github.com/seagullbird/headr-common"
-  packages = ["mq","mq/client","mq/dispatch"]
-  revision = "13bebfd428e5f0b241a385319b9f12bdb1e4d911"
+  packages = ["mq","mq/client","mq/dispatch","mq/dispatch/mock"]
+  revision = "e1cd56d75caf616bc01577e8344ac7e3c074ea4e"
 
 [[projects]]
   branch = "master"
@@ -76,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "97dc3883325b241861128535023023b79fb1f5233371b5b117140de86caff2f9"
+  inputs-digest = "afbc3e9ef565fdfa19571a5890a63ab062c81d2f636db50e9f237ebb9e0aaa50"
   solver-name = "gps-cdcl"
   solver-version = 1

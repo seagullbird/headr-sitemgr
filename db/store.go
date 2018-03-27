@@ -34,19 +34,18 @@ func New(logger log.Logger) Store {
 }
 
 func (s *databaseStore) InsertSite(site *Site) (id uint, err error) {
-	s.db.Create(site)
-	return site.Model.ID, nil
+	err = s.db.Create(site).Error
+	return site.Model.ID, err
 }
 
 func (s *databaseStore) DeleteSite(site *Site) error {
-	s.db.Delete(&site)
-	return nil
+	return s.db.Delete(&site).Error
 }
 
 func (s *databaseStore) GetSite(id uint) (*Site, error) {
 	var site Site
-	s.db.First(&site, id)
-	return &site, nil
+	err := s.db.First(&site, id).Error
+	return &site, err
 }
 
 func (s *databaseStore) PatchSite(site *Site) error {
@@ -57,12 +56,12 @@ func (s *databaseStore) CheckSitenameExists(sitename string) (bool, error) {
 	// exists, return true
 	// not exists, return false
 	var site Site
-	s.db.Where("sitename = ?", sitename).First(&site)
-	return site != Site{}, nil
+	err := s.db.Where("sitename = ?", sitename).First(&site).Error
+	return site != Site{}, err
 }
 
 func (s *databaseStore) GetSiteIDByUserID(userID string) (uint, error) {
 	var site Site
-	s.db.Where("user_id = ?", userID).First(&site)
-	return site.Model.ID, nil
+	err := s.db.Where("user_id = ?", userID).First(&site).Error
+	return site.Model.ID, err
 }

@@ -1,6 +1,6 @@
 GOARCH?=amd64
 GOOS?=linux
-APP?=repoctl
+APP?=./build/repoctl
 PROJECT?=github.com/seagullbird/headr-repoctl
 COMMIT?=$(shell git rev-parse --short HEAD)
 PORT?=8687
@@ -15,7 +15,7 @@ build: clean
 	-o ${APP}
 
 container: build
-	docker build -t repoctl:${COMMIT} .
+	docker build -t repoctl:${COMMIT} ./build/
 
 minikube: container
 	cat k8s/k8s.yaml | \

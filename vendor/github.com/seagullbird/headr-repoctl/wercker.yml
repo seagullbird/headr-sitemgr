@@ -1,6 +1,9 @@
 box:
   id: golang:1.9
 
+services:
+  - rabbitmq:3.7.2
+
 build:
   steps:
     - wercker/golint:
@@ -22,6 +25,11 @@ build:
             tar -czvf $WERCKER_CACHE_DIR/environ.tar.gz /data
           fi
     - script:
-        name: go test
+        name: "Wait for RabbitMQ connection"
         code: |
-          go test -v ./tests
+          while ! $(python -c "import socket; soc=socket.socket(); soc.connect(('$RABBITMQ_PORT_5672_TCP_ADDR', $RABBITMQ_PORT_5672_TCP_PORT))"); \
+          do sleep 3; done
+    - script:
+        name: "Test"
+        code: |
+          ./test.sh

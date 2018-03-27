@@ -44,7 +44,7 @@ func (mw loggingMiddleware) WritePost(ctx context.Context, siteID uint, filename
 
 func (mw loggingMiddleware) RemovePost(ctx context.Context, siteID uint, filename string) (err error) {
 	err = mw.next.RemovePost(ctx, siteID, filename)
-	mw.logger.Log("method", "DeletePost", "siteID", siteID, "filename", filename, "err", err)
+	mw.logger.Log("method", "RemovePost", "siteID", siteID, "filename", filename, "err", err)
 	return
 }
 

@@ -11,6 +11,6 @@ build:
         name: env
         code: env
     - script:
-        name: go test
+        name: "Test"
         code: |
-          go test -v ./...
+          ./test.sh

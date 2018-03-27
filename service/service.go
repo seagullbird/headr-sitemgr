@@ -1,5 +1,7 @@
 package service
 
+//go:generate mockgen -destination=./mock/mock_service.go -package=mock github.com/seagullbird/headr-sitemgr/service Service
+
 import (
 	"context"
 	stdjwt "github.com/dgrijalva/jwt-go"
@@ -71,7 +73,9 @@ func (s basicService) NewSite(ctx context.Context, sitename string) (uint, error
 func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
 	// delete database item
 	site, _ := s.store.GetSite(siteID)
-	s.store.DeleteSite(site)
+	if err := s.store.DeleteSite(site); err != nil {
+		return err
+	}
 	// delete static files
 	err := s.repoctlsvc.DeleteSite(ctx, siteID)
 	if err != nil {
