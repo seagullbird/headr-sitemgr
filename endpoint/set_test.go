@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"github.com/go-kit/kit/auth/jwt"
+	kitendpoint "github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/golang/mock/gomock"
 	"github.com/seagullbird/headr-common/auth"
@@ -88,5 +89,36 @@ func TestSet(t *testing.T) {
 				}
 			})
 		})
+	}
+}
+
+// In fact this part is tested in grpc_test.TestGRPCTransport, dual here for good coverage report
+func TestSetBadEndpoint(t *testing.T) {
+	makeBadEndpoint := func(resp interface{}) kitendpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			r := resp.(endpoint.Failer)
+			return nil, r.Failed()
+		}
+	}
+
+	endpoints := endpoint.Set{
+		NewSiteEndpoint:             makeBadEndpoint(endpoint.NewSiteResponse{SiteID: 1, Err: errors.New("dummy error")}),
+		DeleteSiteEndpoint:          makeBadEndpoint(endpoint.DeleteSiteResponse{Err: errors.New("dummy error")}),
+		CheckSitenameExistsEndpoint: makeBadEndpoint(endpoint.CheckSitenameExistsResponse{Exists: true, Err: errors.New("dummy error")}),
+		GetSiteIDByUserIDEndpoint:   makeBadEndpoint(endpoint.GetSiteIDByUserIDResponse{SiteID: 1, Err: errors.New("dummy error")}),
+	}
+
+	expectedMsg := "dummy error"
+	if _, err := endpoints.NewSite(context.Background(), "sitename"); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if err := endpoints.DeleteSite(context.Background(), 1); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := endpoints.CheckSitenameExists(context.Background(), "sitename"); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := endpoints.GetSiteIDByUserID(context.Background()); err.Error() != expectedMsg {
+		t.Fatal(err)
 	}
 }
