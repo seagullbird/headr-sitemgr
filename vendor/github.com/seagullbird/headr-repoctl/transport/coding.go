@@ -10,13 +10,14 @@ import (
 // NewSite
 func encodeGRPCNewSiteRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(endpoint.NewSiteRequest)
-	return &pb.NewSiteRequest{SiteId: uint64(req.SiteID)}, nil
+	return &pb.NewSiteRequest{SiteId: uint64(req.SiteID), Theme: req.Theme}, nil
 }
 
 func decodeGRPCNewSiteRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.NewSiteRequest)
 	return endpoint.NewSiteRequest{
 		SiteID: uint(req.SiteId),
+		Theme:  req.Theme,
 	}, nil
 }
 

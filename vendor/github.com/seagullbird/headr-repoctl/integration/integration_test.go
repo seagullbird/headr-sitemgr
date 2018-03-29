@@ -63,7 +63,7 @@ func TestIntegration(t *testing.T) {
 	content := "content"
 	ctx := context.Background()
 	// NewSite won't do anything but dispatch a message
-	if err := client.NewSite(ctx, siteID); err != nil {
+	if err := client.NewSite(ctx, siteID, "theme"); err != nil {
 		t.Fatal(err)
 	}
 	// WritePost will mkdir the post path

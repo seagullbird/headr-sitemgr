@@ -13,6 +13,7 @@ service Repoctl {
 
 message NewSiteRequest {
     uint64 site_id = 1;
+    string theme = 2;
 }
 
 message NewSiteReply {

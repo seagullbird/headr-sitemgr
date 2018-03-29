@@ -32,8 +32,8 @@ func New(svc service.Service, logger log.Logger) Set {
 
 // NewSite implements the service interface, so Set may be used as a service.
 // This is primarily useful in the context of a client library.
-func (s Set) NewSite(ctx context.Context, siteID uint) error {
-	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{SiteID: siteID})
+func (s Set) NewSite(ctx context.Context, siteID uint, theme string) error {
+	resp, err := s.NewSiteEndpoint(ctx, NewSiteRequest{SiteID: siteID, Theme: theme})
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (s Set) ReadPost(ctx context.Context, siteID uint, filename string) (string
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(NewSiteRequest)
-		err = svc.NewSite(ctx, req.SiteID)
+		err = svc.NewSite(ctx, req.SiteID, req.Theme)
 		return NewSiteResponse{Err: err}, nil
 	}
 }

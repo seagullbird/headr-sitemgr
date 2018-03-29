@@ -24,8 +24,8 @@ type loggingMiddleware struct {
 	next   Service
 }
 
-func (mw loggingMiddleware) NewSite(ctx context.Context, siteID uint) (err error) {
-	err = mw.next.NewSite(ctx, siteID)
+func (mw loggingMiddleware) NewSite(ctx context.Context, siteID uint, theme string) (err error) {
+	err = mw.next.NewSite(ctx, siteID, theme)
 	mw.logger.Log("method", "NewSite", "siteID", siteID, "err", err)
 	return
 }

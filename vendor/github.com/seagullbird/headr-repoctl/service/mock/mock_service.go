@@ -46,15 +46,15 @@ func (mr *MockServiceMockRecorder) DeleteSite(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // NewSite mocks base method
-func (m *MockService) NewSite(arg0 context.Context, arg1 uint) error {
-	ret := m.ctrl.Call(m, "NewSite", arg0, arg1)
+func (m *MockService) NewSite(arg0 context.Context, arg1 uint, arg2 string) error {
+	ret := m.ctrl.Call(m, "NewSite", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // NewSite indicates an expected call of NewSite
-func (mr *MockServiceMockRecorder) NewSite(arg0, arg1 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewSite", reflect.TypeOf((*MockService)(nil).NewSite), arg0, arg1)
+func (mr *MockServiceMockRecorder) NewSite(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewSite", reflect.TypeOf((*MockService)(nil).NewSite), arg0, arg1, arg2)
 }
 
 // ReadPost mocks base method

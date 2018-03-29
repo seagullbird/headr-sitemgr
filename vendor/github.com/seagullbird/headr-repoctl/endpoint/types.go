@@ -3,6 +3,7 @@ package endpoint
 // NewSiteRequest collects the request parameters for the NewSite method.
 type NewSiteRequest struct {
 	SiteID uint
+	Theme  string
 }
 
 // NewSiteResponse collects the response values for the NewSite method.

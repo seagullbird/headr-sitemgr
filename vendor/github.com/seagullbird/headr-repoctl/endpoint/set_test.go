@@ -47,7 +47,7 @@ func TestSet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set EXPECTS
-			mockSvc.EXPECT().NewSite(gomock.Any(), gomock.Any()).Return(tt.rets["NewSite"]...).Times(2)
+			mockSvc.EXPECT().NewSite(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["NewSite"]...).Times(2)
 			mockSvc.EXPECT().DeleteSite(gomock.Any(), gomock.Any()).Return(tt.rets["DeleteSite"]...).Times(2)
 			mockSvc.EXPECT().WritePost(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["WritePost"]...).Times(2)
 			mockSvc.EXPECT().RemovePost(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["RemovePost"]...).Times(2)
@@ -56,8 +56,9 @@ func TestSet(t *testing.T) {
 			t.Run("NewSite", func(t *testing.T) {
 				ctx := context.Background()
 				siteID := uint(1)
-				setErr := endpoints.NewSite(ctx, siteID)
-				svcErr := mockSvc.NewSite(ctx, siteID)
+				theme := "theme"
+				setErr := endpoints.NewSite(ctx, siteID, theme)
+				svcErr := mockSvc.NewSite(ctx, siteID, theme)
 				if setErr != svcErr {
 					t.Fatal(setErr)
 				}
@@ -123,7 +124,7 @@ func TestSetBadEndpoint(t *testing.T) {
 	}
 
 	expectedMsg := "dummy error"
-	if err := endpoints.NewSite(context.Background(), 1); err.Error() != expectedMsg {
+	if err := endpoints.NewSite(context.Background(), 1, "theme"); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 	if err := endpoints.DeleteSite(context.Background(), 1); err.Error() != expectedMsg {

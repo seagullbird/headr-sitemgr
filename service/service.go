@@ -58,7 +58,7 @@ func (s basicService) NewSite(ctx context.Context, sitename string) (uint, error
 	if err != nil {
 		return 0, err
 	}
-	err = s.repoctlsvc.NewSite(ctx, siteID)
+	err = s.repoctlsvc.NewSite(ctx, siteID, site.Theme)
 	if err != nil {
 		return 0, err
 	}

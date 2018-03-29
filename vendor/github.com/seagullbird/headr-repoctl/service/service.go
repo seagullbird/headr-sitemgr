@@ -18,7 +18,7 @@ import (
 
 // Service describes a service that deals with local files in the persistent volume (repoctl).
 type Service interface {
-	NewSite(ctx context.Context, siteID uint) error
+	NewSite(ctx context.Context, siteID uint, theme string) error
 	DeleteSite(ctx context.Context, siteID uint) error
 	WritePost(ctx context.Context, siteID uint, filename, content string) error
 	RemovePost(ctx context.Context, siteID uint, filename string) error
@@ -56,14 +56,14 @@ var ErrUnexpected = errors.New("unexpected error")
 // Typically a SiteID <= 0
 var ErrInvalidSiteID = errors.New("invalid siteID")
 
-func (s basicService) NewSite(ctx context.Context, siteID uint) error {
+func (s basicService) NewSite(ctx context.Context, siteID uint, theme string) error {
 	if siteID <= 0 {
 		return ErrInvalidSiteID
 	}
 
 	evt := mq.SiteUpdatedEvent{
 		SiteID:     siteID,
-		Theme:      config.InitialTheme,
+		Theme:      theme,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("new_site", evt)
@@ -104,7 +104,6 @@ func (s basicService) WritePost(ctx context.Context, siteID uint, filename, cont
 	// Generate site
 	evt := mq.SiteUpdatedEvent{
 		SiteID:     siteID,
-		Theme:      config.InitialTheme,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("re_generate", evt)
@@ -128,7 +127,6 @@ func (s basicService) RemovePost(ctx context.Context, siteID uint, filename stri
 	// Generate site
 	evt := mq.SiteUpdatedEvent{
 		SiteID:     siteID,
-		Theme:      config.InitialTheme,
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("re_generate", evt)

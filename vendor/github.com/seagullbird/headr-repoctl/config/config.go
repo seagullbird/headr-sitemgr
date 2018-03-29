@@ -9,7 +9,4 @@ var (
 	DATADIR = "/data"
 	// SITESDIR contains all user sites
 	SITESDIR = filepath.Join(DATADIR, "sites")
-	// InitialTheme currently is set dead to gohugo-theme-ananke
-	// TODO: InitialTheme should be set in sitemgr and passed to repoctl
-	InitialTheme = "gohugo-theme-ananke"
 )

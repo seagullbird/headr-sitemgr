@@ -81,18 +81,19 @@ func clearEnvWrapper(t *testing.T, tester func(t *testing.T)) {
 func (s basicServiceTest) TestNewSite(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    uint
+		siteID   uint
+		theme    string
 		expected error
 	}{
-		{"Invalid SiteID 0", 0, service.ErrInvalidSiteID},
-		{"Normal Functioning", 1, nil},
+		{"Invalid SiteID 0", 0, "theme", service.ErrInvalidSiteID},
+		{"Normal Functioning", 1, "theme", nil},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output := s.svc.NewSite(context.Background(), tt.input)
+			output := s.svc.NewSite(context.Background(), tt.siteID, tt.theme)
 			if output != tt.expected {
-				t.Fatalf("%s failed; input=%d, output=%s, expected=%s", tt.name, tt.input, output, tt.expected)
+				t.Fatalf("%s failed; siteID=%d, theme=%s, output=%s, expected=%s", tt.name, tt.siteID, tt.theme, output, tt.expected)
 			}
 		})
 	}
@@ -118,7 +119,7 @@ func (s basicServiceTest) TestDeleteSite(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			output := s.svc.DeleteSite(context.Background(), tt.input)
 			if output != tt.expected {
-				t.Fatalf("%s failed; input=%d, output=%s, expected=%s", tt.name, tt.input, output, tt.expected)
+				t.Fatalf("%s failed; siteID=%d, output=%s, expected=%s", tt.name, tt.input, output, tt.expected)
 			}
 			if output == nil {
 				// Make sure sitepath is truly deleted

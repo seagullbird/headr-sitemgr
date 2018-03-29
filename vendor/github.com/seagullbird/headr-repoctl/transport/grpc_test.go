@@ -60,7 +60,7 @@ func TestGRPCApplication(t *testing.T) {
 		},
 	} {
 		times := 2
-		mockSvc.EXPECT().NewSite(gomock.Any(), gomock.Any()).Return(rets["NewSite"]...).Times(times)
+		mockSvc.EXPECT().NewSite(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["NewSite"]...).Times(times)
 		mockSvc.EXPECT().DeleteSite(gomock.Any(), gomock.Any()).Return(rets["DeleteSite"]...).Times(times)
 		mockSvc.EXPECT().WritePost(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["WritePost"]...).Times(times)
 		mockSvc.EXPECT().RemovePost(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["RemovePost"]...).Times(times)
@@ -111,8 +111,9 @@ func TestGRPCApplication(t *testing.T) {
 			t.Run("NewSite", func(t *testing.T) {
 				siteID := uint(1)
 				ctx := context.Background()
-				clientErr := client.NewSite(ctx, siteID)
-				svcErr := mockSvc.NewSite(ctx, siteID)
+				theme := "theme"
+				clientErr := client.NewSite(ctx, siteID, theme)
+				svcErr := mockSvc.NewSite(ctx, siteID, theme)
 				if !tt.judger(clientErr, svcErr) {
 					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
 				}
@@ -191,7 +192,7 @@ func TestGRPCTransport(t *testing.T) {
 
 	client := transport.NewGRPCClient(conn, nil)
 	expectedMsg := "rpc error: code = Unknown desc = dummy error"
-	if err := client.NewSite(context.Background(), 1); err.Error() != expectedMsg {
+	if err := client.NewSite(context.Background(), 1, "theme"); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 	if err := client.DeleteSite(context.Background(), 1); err.Error() != expectedMsg {
