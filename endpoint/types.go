@@ -52,3 +52,14 @@ type GetConfigResponse struct {
 	Config string `json:"config"`
 	Err    error  `json:"-"`
 }
+
+// UpdateConfigRequest collects the request parameters for the UpdateConfig method.
+type UpdateConfigRequest struct {
+	SiteID uint   `json:"site_id"`
+	Config string `json:"config"`
+}
+
+// UpdateConfigResponse collects the response values for the UpdateConfig method.
+type UpdateConfigResponse struct {
+	Err error `json:"-"`
+}

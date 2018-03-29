@@ -45,6 +45,7 @@ func TestGRPCApplication(t *testing.T) {
 			"CheckSitenameExists": {true, nil},
 			"GetSiteIDByUserID":   {uint(1), nil},
 			"GetConfig":           {"config", nil},
+			"UpdateConfig":        {nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
@@ -52,6 +53,7 @@ func TestGRPCApplication(t *testing.T) {
 			"CheckSitenameExists": {false, dummyError},
 			"GetSiteIDByUserID":   {uint(0), dummyError},
 			"GetConfig":           {"", dummyError},
+			"UpdateConfig":        {dummyError},
 		},
 	} {
 		times := 2
@@ -60,6 +62,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().CheckSitenameExists(gomock.Any(), gomock.Any()).Return(rets["CheckSitenameExists"]...).Times(times)
 		mockSvc.EXPECT().GetSiteIDByUserID(gomock.Any()).Return(rets["GetSiteIDByUserID"]...).Times(times)
 		mockSvc.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(rets["GetConfig"]...).Times(times)
+		mockSvc.EXPECT().UpdateConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateConfig"]...).Times(times)
 	}
 
 	// Start GRPC server with the mock service
@@ -148,6 +151,16 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("UpdateConfig", func(t *testing.T) {
+				siteID := uint(1)
+				config := "config"
+				clientErr := client.UpdateConfig(ctx, siteID, config)
+				svcErr := mockSvc.UpdateConfig(ctx, siteID, config)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
+
+				}
+			})
 		})
 	}
 
@@ -167,6 +180,7 @@ func TestGRPCTransport(t *testing.T) {
 		CheckSitenameExistsEndpoint: makeBadEndpoint(),
 		GetSiteIDByUserIDEndpoint:   makeBadEndpoint(),
 		GetConfigEndpoint:           makeBadEndpoint(),
+		UpdateConfigEndpoint:        makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -192,6 +206,9 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := client.GetConfig(context.Background(), 1); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if err := client.UpdateConfig(context.Background(), 1, "config"); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

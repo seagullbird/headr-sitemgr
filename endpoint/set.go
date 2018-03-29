@@ -16,6 +16,7 @@ type Set struct {
 	CheckSitenameExistsEndpoint endpoint.Endpoint
 	GetSiteIDByUserIDEndpoint   endpoint.Endpoint
 	GetConfigEndpoint           endpoint.Endpoint
+	UpdateConfigEndpoint        endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server.
@@ -26,6 +27,7 @@ func New(svc service.Service, logger log.Logger) Set {
 		CheckSitenameExistsEndpoint: Middlewares(MakeCheckSitenameExistsEndpoint(svc), logger),
 		GetSiteIDByUserIDEndpoint:   Middlewares(MakeGetSiteIDByUserIDEndpoint(svc), logger),
 		GetConfigEndpoint:           Middlewares(MakeGetConfigEndpoint(svc), logger),
+		UpdateConfigEndpoint:        Middlewares(MakeUpdateConfigEndpoint(svc), logger),
 	}
 }
 
@@ -84,6 +86,17 @@ func (s Set) GetConfig(ctx context.Context, siteID uint) (string, error) {
 	return response.Config, response.Err
 }
 
+// UpdateConfig implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) UpdateConfig(ctx context.Context, siteID uint, config string) error {
+	resp, err := s.UpdateConfigEndpoint(ctx, UpdateConfigRequest{SiteID: siteID, Config: config})
+	if err != nil {
+		return err
+	}
+	response := resp.(UpdateConfigResponse)
+	return response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -128,6 +141,15 @@ func MakeGetConfigEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
+// MakeUpdateConfigEndpoint constructs a UpdateConfig endpoint wrapping the service.
+func MakeUpdateConfigEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(UpdateConfigRequest)
+		err = svc.UpdateConfig(ctx, req.SiteID, req.Config)
+		return UpdateConfigResponse{Err: err}, nil
+	}
+}
+
 // Failer is an interface that should be implemented by response types.
 // Response encoders can check if responses are Failer, and if so if they've
 // failed, and if so encode them using a separate write path based on the error.
@@ -149,3 +171,6 @@ func (r GetSiteIDByUserIDResponse) Failed() error { return r.Err }
 
 // Failed implements Failer.
 func (r GetConfigResponse) Failed() error { return r.Err }
+
+// Failed implements Failer.
+func (r UpdateConfigResponse) Failed() error { return r.Err }

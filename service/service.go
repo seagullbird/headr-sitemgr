@@ -22,6 +22,7 @@ type Service interface {
 	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
 	GetSiteIDByUserID(ctx context.Context) (uint, error)
 	GetConfig(ctx context.Context, siteID uint) (string, error)
+	UpdateConfig(ctx context.Context, siteID uint, config string) error
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -101,4 +102,8 @@ func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 
 func (s basicService) GetConfig(ctx context.Context, siteID uint) (string, error) {
 	return s.repoctlsvc.ReadConfig(ctx, siteID)
+}
+
+func (s basicService) UpdateConfig(ctx context.Context, siteID uint, config string) error {
+	return s.repoctlsvc.WriteConfig(ctx, siteID, config)
 }

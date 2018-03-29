@@ -9,6 +9,7 @@ service Sitemgr {
     rpc CheckSitenameExists (CheckSitenameExistsRequest) returns (CheckSitenameExistsReply) {}
     rpc GetSiteIDByUserID (GetSiteIDByUserIDRequest) returns (GetSiteIDByUserIDReply) {}
     rpc GetConfig (GetConfigRequest) returns (GetConfigReply) {}
+    rpc UpdateConfig (UpdateConfigRequest) returns (UpdateConfigReply) {}
 }
 
 message CreateNewSiteRequest {
@@ -52,4 +53,13 @@ message GetConfigRequest {
 message GetConfigReply {
     string config = 1;
     string err = 2;
+}
+
+message UpdateConfigRequest {
+    uint64 site_id = 1;
+    string config = 2;
+}
+
+message UpdateConfigReply {
+    string err = 1;
 }

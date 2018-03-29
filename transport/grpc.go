@@ -19,6 +19,7 @@ type grpcServer struct {
 	checksitenameexists grpctransport.Handler
 	getsiteidbyuserid   grpctransport.Handler
 	getconfig           grpctransport.Handler
+	updateconfig        grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC SitemgrServer.
@@ -56,6 +57,12 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.SitemgrServer {
 			endpoints.GetConfigEndpoint,
 			decodeGRPCGetConfigRequest,
 			encodeGRPCGetConfigResponse,
+			options...,
+		),
+		updateconfig: grpctransport.NewServer(
+			endpoints.UpdateConfigEndpoint,
+			decodeGRPCUpdateConfigRequest,
+			encodeGRPCUpdateConfigResponse,
 			options...,
 		),
 	}
@@ -128,6 +135,18 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			options...,
 		).Endpoint()
 	}
+	var updateconfigEndpoint kitendpoint.Endpoint
+	{
+		updateconfigEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Sitemgr",
+			"UpdateConfig",
+			encodeGRPCUpdateConfigRequest,
+			decodeGRPCUpdateConfigResponse,
+			pb.UpdateConfigReply{},
+			options...,
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
@@ -137,6 +156,7 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 		CheckSitenameExistsEndpoint: checksitenameexistsEndpoint,
 		GetSiteIDByUserIDEndpoint:   getsiteidbyuseridEndpoint,
 		GetConfigEndpoint:           getconfigEndpoint,
+		UpdateConfigEndpoint:        updateconfigEndpoint,
 	}
 }
 
@@ -178,6 +198,14 @@ func (s *grpcServer) GetConfig(ctx context.Context, req *pb.GetConfigRequest) (*
 		return nil, err
 	}
 	return rep.(*pb.GetConfigReply), nil
+}
+
+func (s *grpcServer) UpdateConfig(ctx context.Context, req *pb.UpdateConfigRequest) (*pb.UpdateConfigReply, error) {
+	_, rep, err := s.updateconfig.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UpdateConfigReply), nil
 }
 
 // NewSite
@@ -303,6 +331,32 @@ func encodeGRPCGetConfigResponse(_ context.Context, response interface{}) (inter
 func decodeGRPCGetConfigResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.GetConfigReply)
 	return endpoint.GetConfigResponse{Config: reply.Config, Err: str2err(reply.Err)}, nil
+}
+
+// UpdateConfig
+func encodeGRPCUpdateConfigRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(endpoint.UpdateConfigRequest)
+	return &pb.UpdateConfigRequest{SiteId: uint64(req.SiteID), Config: req.Config}, nil
+}
+
+func decodeGRPCUpdateConfigRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UpdateConfigRequest)
+	return endpoint.UpdateConfigRequest{
+		SiteID: uint(req.SiteId),
+		Config: req.Config,
+	}, nil
+}
+
+func encodeGRPCUpdateConfigResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(endpoint.UpdateConfigResponse)
+	return &pb.UpdateConfigReply{
+		Err: err2str(resp.Err),
+	}, nil
+}
+
+func decodeGRPCUpdateConfigResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.UpdateConfigReply)
+	return endpoint.UpdateConfigResponse{Err: str2err(reply.Err)}, nil
 }
 
 func err2str(err error) string {
