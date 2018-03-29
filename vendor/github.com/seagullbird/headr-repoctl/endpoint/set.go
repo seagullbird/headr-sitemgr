@@ -11,22 +11,26 @@ import (
 // be used as a helper struct, to collect all of the endpoints into a single
 // parameter.
 type Set struct {
-	NewSiteEndpoint    endpoint.Endpoint
-	DeleteSiteEndpoint endpoint.Endpoint
-	WritePostEndpoint  endpoint.Endpoint
-	RemovePostEndpoint endpoint.Endpoint
-	ReadPostEndpoint   endpoint.Endpoint
+	NewSiteEndpoint     endpoint.Endpoint
+	DeleteSiteEndpoint  endpoint.Endpoint
+	WritePostEndpoint   endpoint.Endpoint
+	RemovePostEndpoint  endpoint.Endpoint
+	ReadPostEndpoint    endpoint.Endpoint
+	WriteConfigEndpoint endpoint.Endpoint
+	ReadConfigEndpoint  endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server, and wires in all of the
 // expected endpoint middlewares via the various parameters.
 func New(svc service.Service, logger log.Logger) Set {
 	return Set{
-		NewSiteEndpoint:    Middlewares(MakeNewSiteEndpoint(svc), logger),
-		DeleteSiteEndpoint: Middlewares(MakeDeleteSiteEndpoint(svc), logger),
-		WritePostEndpoint:  Middlewares(MakeWritePostEndpoint(svc), logger),
-		RemovePostEndpoint: Middlewares(MakeRemovePostEndpoint(svc), logger),
-		ReadPostEndpoint:   Middlewares(MakeReadPostEndpoint(svc), logger),
+		NewSiteEndpoint:     Middlewares(MakeNewSiteEndpoint(svc), logger),
+		DeleteSiteEndpoint:  Middlewares(MakeDeleteSiteEndpoint(svc), logger),
+		WritePostEndpoint:   Middlewares(MakeWritePostEndpoint(svc), logger),
+		RemovePostEndpoint:  Middlewares(MakeRemovePostEndpoint(svc), logger),
+		ReadPostEndpoint:    Middlewares(MakeReadPostEndpoint(svc), logger),
+		WriteConfigEndpoint: Middlewares(MakeWriteConfigEndpoint(svc), logger),
+		ReadConfigEndpoint:  Middlewares(MakeReadConfigEndpoint(svc), logger),
 	}
 }
 
@@ -95,6 +99,32 @@ func (s Set) ReadPost(ctx context.Context, siteID uint, filename string) (string
 	return response.Content, response.Err
 }
 
+// WriteConfig implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) WriteConfig(ctx context.Context, siteID uint, config string) error {
+	resp, err := s.WriteConfigEndpoint(ctx, WriteConfigRequest{
+		SiteID: siteID,
+	})
+	if err != nil {
+		return err
+	}
+	response := resp.(WriteConfigResponse)
+	return response.Err
+}
+
+// ReadConfig implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) ReadConfig(ctx context.Context, siteID uint) (string, error) {
+	resp, err := s.ReadConfigEndpoint(ctx, ReadConfigRequest{
+		SiteID: siteID,
+	})
+	if err != nil {
+		return "", err
+	}
+	response := resp.(ReadConfigResponse)
+	return response.Config, response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -137,5 +167,23 @@ func MakeReadPostEndpoint(svc service.Service) endpoint.Endpoint {
 		req := request.(ReadPostRequest)
 		content, err := svc.ReadPost(ctx, req.SiteID, req.Filename)
 		return ReadPostResponse{Content: content, Err: err}, nil
+	}
+}
+
+// MakeWriteConfigEndpoint constructs a WriteConfig endpoint wrapping the service.
+func MakeWriteConfigEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(WriteConfigRequest)
+		err = svc.WriteConfig(ctx, req.SiteID, req.Config)
+		return WriteConfigResponse{Err: err}, nil
+	}
+}
+
+// MakeReadConfigEndpoint constructs a ReadConfig endpoint wrapping the service.
+func MakeReadConfigEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(ReadConfigRequest)
+		config, err := svc.ReadConfig(ctx, req.SiteID)
+		return ReadConfigResponse{Config: config, Err: err}, nil
 	}
 }

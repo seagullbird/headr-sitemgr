@@ -44,12 +44,14 @@ func TestGRPCApplication(t *testing.T) {
 			"DeleteSite":          {nil},
 			"CheckSitenameExists": {true, nil},
 			"GetSiteIDByUserID":   {uint(1), nil},
+			"GetConfig":           {"config", nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
 			"DeleteSite":          {dummyError},
 			"CheckSitenameExists": {false, dummyError},
 			"GetSiteIDByUserID":   {uint(0), dummyError},
+			"GetConfig":           {"", dummyError},
 		},
 	} {
 		times := 2
@@ -57,6 +59,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().DeleteSite(gomock.Any(), gomock.Any()).Return(rets["DeleteSite"]...).Times(times)
 		mockSvc.EXPECT().CheckSitenameExists(gomock.Any(), gomock.Any()).Return(rets["CheckSitenameExists"]...).Times(times)
 		mockSvc.EXPECT().GetSiteIDByUserID(gomock.Any()).Return(rets["GetSiteIDByUserID"]...).Times(times)
+		mockSvc.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(rets["GetConfig"]...).Times(times)
 	}
 
 	// Start GRPC server with the mock service
@@ -137,6 +140,14 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientSiteID: ", clientSiteID, "\nclientErr: ", clientErr, "\nsvcSiteID: ", svcSiteID, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("GetConfig", func(t *testing.T) {
+				siteID := uint(1)
+				clientOutput, clientErr := client.GetConfig(ctx, siteID)
+				svcOutput, svcErr := mockSvc.GetConfig(ctx, siteID)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 
@@ -155,6 +166,7 @@ func TestGRPCTransport(t *testing.T) {
 		DeleteSiteEndpoint:          makeBadEndpoint(),
 		CheckSitenameExistsEndpoint: makeBadEndpoint(),
 		GetSiteIDByUserIDEndpoint:   makeBadEndpoint(),
+		GetConfigEndpoint:           makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -177,6 +189,9 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := client.GetSiteIDByUserID(context.Background()); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := client.GetConfig(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

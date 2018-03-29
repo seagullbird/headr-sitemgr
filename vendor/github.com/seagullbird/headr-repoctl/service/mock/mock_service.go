@@ -57,6 +57,19 @@ func (mr *MockServiceMockRecorder) NewSite(arg0, arg1, arg2 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewSite", reflect.TypeOf((*MockService)(nil).NewSite), arg0, arg1, arg2)
 }
 
+// ReadConfig mocks base method
+func (m *MockService) ReadConfig(arg0 context.Context, arg1 uint) (string, error) {
+	ret := m.ctrl.Call(m, "ReadConfig", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadConfig indicates an expected call of ReadConfig
+func (mr *MockServiceMockRecorder) ReadConfig(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadConfig", reflect.TypeOf((*MockService)(nil).ReadConfig), arg0, arg1)
+}
+
 // ReadPost mocks base method
 func (m *MockService) ReadPost(arg0 context.Context, arg1 uint, arg2 string) (string, error) {
 	ret := m.ctrl.Call(m, "ReadPost", arg0, arg1, arg2)
@@ -80,6 +93,18 @@ func (m *MockService) RemovePost(arg0 context.Context, arg1 uint, arg2 string) e
 // RemovePost indicates an expected call of RemovePost
 func (mr *MockServiceMockRecorder) RemovePost(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePost", reflect.TypeOf((*MockService)(nil).RemovePost), arg0, arg1, arg2)
+}
+
+// WriteConfig mocks base method
+func (m *MockService) WriteConfig(arg0 context.Context, arg1 uint, arg2 string) error {
+	ret := m.ctrl.Call(m, "WriteConfig", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteConfig indicates an expected call of WriteConfig
+func (mr *MockServiceMockRecorder) WriteConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteConfig", reflect.TypeOf((*MockService)(nil).WriteConfig), arg0, arg1, arg2)
 }
 
 // WritePost mocks base method

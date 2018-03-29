@@ -45,18 +45,22 @@ func TestGRPCApplication(t *testing.T) {
 	dummyError := errors.New("dummy error")
 	for _, rets := range []map[string][]interface{}{
 		{
-			"NewSite":    {nil},
-			"DeleteSite": {nil},
-			"WritePost":  {nil},
-			"RemovePost": {nil},
-			"ReadPost":   {"string", nil},
+			"NewSite":     {nil},
+			"DeleteSite":  {nil},
+			"WritePost":   {nil},
+			"RemovePost":  {nil},
+			"ReadPost":    {"string", nil},
+			"WriteConfig": {nil},
+			"ReadConfig":  {"string", nil},
 		},
 		{
-			"NewSite":    {dummyError},
-			"DeleteSite": {dummyError},
-			"WritePost":  {dummyError},
-			"RemovePost": {dummyError},
-			"ReadPost":   {"", dummyError},
+			"NewSite":     {dummyError},
+			"DeleteSite":  {dummyError},
+			"WritePost":   {dummyError},
+			"RemovePost":  {dummyError},
+			"ReadPost":    {"", dummyError},
+			"WriteConfig": {dummyError},
+			"ReadConfig":  {"", dummyError},
 		},
 	} {
 		times := 2
@@ -65,6 +69,8 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().WritePost(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["WritePost"]...).Times(times)
 		mockSvc.EXPECT().RemovePost(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["RemovePost"]...).Times(times)
 		mockSvc.EXPECT().ReadPost(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["ReadPost"]...).Times(times)
+		mockSvc.EXPECT().WriteConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["WriteConfig"]...).Times(times)
+		mockSvc.EXPECT().ReadConfig(gomock.Any(), gomock.Any()).Return(rets["ReadConfig"]...).Times(times)
 	}
 	// Start GRPC server with the mock service
 	logger := log.NewNopLogger()
@@ -158,6 +164,25 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("WriteConfig", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				config := "filename"
+				clientErr := client.WriteConfig(ctx, siteID, config)
+				svcErr := mockSvc.WriteConfig(ctx, siteID, config)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
+				}
+			})
+			t.Run("ReadConfig", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				clientOutput, clientErr := client.ReadConfig(ctx, siteID)
+				svcOutput, svcErr := mockSvc.ReadConfig(ctx, siteID)
+				if clientOutput != svcOutput || !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 
@@ -175,11 +200,13 @@ func TestGRPCTransport(t *testing.T) {
 	}
 
 	endpoints := endpoint.Set{
-		NewSiteEndpoint:    makeBadEndpoint(),
-		DeleteSiteEndpoint: makeBadEndpoint(),
-		WritePostEndpoint:  makeBadEndpoint(),
-		RemovePostEndpoint: makeBadEndpoint(),
-		ReadPostEndpoint:   makeBadEndpoint(),
+		NewSiteEndpoint:     makeBadEndpoint(),
+		DeleteSiteEndpoint:  makeBadEndpoint(),
+		WritePostEndpoint:   makeBadEndpoint(),
+		RemovePostEndpoint:  makeBadEndpoint(),
+		ReadPostEndpoint:    makeBadEndpoint(),
+		WriteConfigEndpoint: makeBadEndpoint(),
+		ReadConfigEndpoint:  makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -205,6 +232,12 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := client.ReadPost(context.Background(), 1, ""); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if err := client.WriteConfig(context.Background(), 1, ""); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := client.ReadConfig(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

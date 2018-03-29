@@ -12,11 +12,13 @@ import (
 )
 
 type grpcServer struct {
-	newsite    grpctransport.Handler
-	deletesite grpctransport.Handler
-	newpost    grpctransport.Handler
-	rmpost     grpctransport.Handler
-	readpost   grpctransport.Handler
+	newsite     grpctransport.Handler
+	deletesite  grpctransport.Handler
+	newpost     grpctransport.Handler
+	rmpost      grpctransport.Handler
+	readpost    grpctransport.Handler
+	writeconfig grpctransport.Handler
+	readconfig  grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC RepoctlServer.
@@ -53,6 +55,18 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.RepoctlServer {
 			endpoints.ReadPostEndpoint,
 			decodeGRPCReadPostRequest,
 			encodeGRPCReadPostResponse,
+			options...,
+		),
+		writeconfig: grpctransport.NewServer(
+			endpoints.WriteConfigEndpoint,
+			decodeGRPCWriteConfigRequest,
+			encodeGRPCWriteConfigResponse,
+			options...,
+		),
+		readconfig: grpctransport.NewServer(
+			endpoints.ReadConfigEndpoint,
+			decodeGRPCReadConfigRequest,
+			encodeGRPCReadConfigResponse,
 			options...,
 		),
 	}
@@ -117,15 +131,39 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			pb.ReadPostReply{},
 		).Endpoint()
 	}
+	var writeconfigEndpoint kitendpoint.Endpoint
+	{
+		writeconfigEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Repoctl",
+			"WriteConfig",
+			encodeGRPCWriteConfigRequest,
+			decodeGRPCWriteConfigResponse,
+			pb.WriteConfigReply{},
+		).Endpoint()
+	}
+	var readconfigEndpoint kitendpoint.Endpoint
+	{
+		readconfigEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Repoctl",
+			"ReadConfig",
+			encodeGRPCReadConfigRequest,
+			decodeGRPCReadConfigResponse,
+			pb.ReadConfigReply{},
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
 	return endpoint.Set{
-		NewSiteEndpoint:    newsiteEndpoint,
-		DeleteSiteEndpoint: deletesiteEndpoint,
-		WritePostEndpoint:  newpostEndpoint,
-		RemovePostEndpoint: deletepostEndpoint,
-		ReadPostEndpoint:   readpostEndpoint,
+		NewSiteEndpoint:     newsiteEndpoint,
+		DeleteSiteEndpoint:  deletesiteEndpoint,
+		WritePostEndpoint:   newpostEndpoint,
+		RemovePostEndpoint:  deletepostEndpoint,
+		ReadPostEndpoint:    readpostEndpoint,
+		WriteConfigEndpoint: writeconfigEndpoint,
+		ReadConfigEndpoint:  readconfigEndpoint,
 	}
 }
 
@@ -167,4 +205,20 @@ func (s *grpcServer) ReadPost(ctx context.Context, req *pb.ReadPostRequest) (*pb
 		return nil, err
 	}
 	return rep.(*pb.ReadPostReply), nil
+}
+
+func (s *grpcServer) WriteConfig(ctx context.Context, req *pb.WriteConfigRequest) (*pb.WriteConfigReply, error) {
+	_, rep, err := s.writeconfig.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.WriteConfigReply), nil
+}
+
+func (s *grpcServer) ReadConfig(ctx context.Context, req *pb.ReadConfigRequest) (*pb.ReadConfigReply, error) {
+	_, rep, err := s.readconfig.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ReadConfigReply), nil
 }

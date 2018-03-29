@@ -89,7 +89,7 @@
   branch = "master"
   name = "github.com/seagullbird/headr-repoctl"
   packages = ["config","endpoint","pb","service","transport"]
-  revision = "b71d8b529aff195afc49a97f68184b8f74973b62"
+  revision = "a397c31938cd6e9c3a459ed88d15438dbb9acdb2"
 
 [[projects]]
   branch = "master"

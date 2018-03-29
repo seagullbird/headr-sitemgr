@@ -21,6 +21,7 @@ type Service interface {
 	DeleteSite(ctx context.Context, siteID uint) error
 	CheckSitenameExists(ctx context.Context, sitename string) (bool, error)
 	GetSiteIDByUserID(ctx context.Context) (uint, error)
+	GetConfig(ctx context.Context, siteID uint) (string, error)
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -96,4 +97,8 @@ func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) 
 func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"]
 	return s.store.GetSiteIDByUserID(userID.(string))
+}
+
+func (s basicService) GetConfig(ctx context.Context, siteID uint) (string, error) {
+	return s.repoctlsvc.ReadConfig(ctx, siteID)
 }

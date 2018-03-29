@@ -29,18 +29,22 @@ func TestSet(t *testing.T) {
 		rets map[string][]interface{}
 	}{
 		{"No Error", map[string][]interface{}{
-			"NewSite":    {nil},
-			"DeleteSite": {nil},
-			"WritePost":  {nil},
-			"RemovePost": {nil},
-			"ReadPost":   {"string", nil},
+			"NewSite":     {nil},
+			"DeleteSite":  {nil},
+			"WritePost":   {nil},
+			"RemovePost":  {nil},
+			"ReadPost":    {"string", nil},
+			"WriteConfig": {nil},
+			"ReadConfig":  {"string", nil},
 		}},
 		{"Dummy Error", map[string][]interface{}{
-			"NewSite":    {dummyError},
-			"DeleteSite": {dummyError},
-			"WritePost":  {dummyError},
-			"RemovePost": {dummyError},
-			"ReadPost":   {"", dummyError},
+			"NewSite":     {dummyError},
+			"DeleteSite":  {dummyError},
+			"WritePost":   {dummyError},
+			"RemovePost":  {dummyError},
+			"ReadPost":    {"", dummyError},
+			"WriteConfig": {dummyError},
+			"ReadConfig":  {"", dummyError},
 		}},
 	}
 
@@ -52,6 +56,8 @@ func TestSet(t *testing.T) {
 			mockSvc.EXPECT().WritePost(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["WritePost"]...).Times(2)
 			mockSvc.EXPECT().RemovePost(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["RemovePost"]...).Times(2)
 			mockSvc.EXPECT().ReadPost(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["ReadPost"]...).Times(2)
+			mockSvc.EXPECT().WriteConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["WriteConfig"]...).Times(2)
+			mockSvc.EXPECT().ReadConfig(gomock.Any(), gomock.Any()).Return(tt.rets["ReadConfig"]...).Times(2)
 
 			t.Run("NewSite", func(t *testing.T) {
 				ctx := context.Background()
@@ -103,6 +109,25 @@ func TestSet(t *testing.T) {
 					t.Fatal(setOutput, setErr)
 				}
 			})
+			t.Run("WriteConfig", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				config := "config"
+				setErr := endpoints.WriteConfig(ctx, siteID, config)
+				svcErr := mockSvc.WriteConfig(ctx, siteID, config)
+				if setErr != svcErr {
+					t.Fatal("setErr=", setErr, "svcErr=", svcErr)
+				}
+			})
+			t.Run("ReadConfig", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				setOutput, setErr := endpoints.ReadConfig(ctx, siteID)
+				svcOutput, svcErr := mockSvc.ReadConfig(ctx, siteID)
+				if setOutput != svcOutput || setErr != svcErr {
+					t.Fatal(setOutput, setErr)
+				}
+			})
 		})
 	}
 }
@@ -116,11 +141,13 @@ func TestSetBadEndpoint(t *testing.T) {
 	}
 
 	endpoints := endpoint.Set{
-		NewSiteEndpoint:    makeBadEndpoint(),
-		DeleteSiteEndpoint: makeBadEndpoint(),
-		WritePostEndpoint:  makeBadEndpoint(),
-		RemovePostEndpoint: makeBadEndpoint(),
-		ReadPostEndpoint:   makeBadEndpoint(),
+		NewSiteEndpoint:     makeBadEndpoint(),
+		DeleteSiteEndpoint:  makeBadEndpoint(),
+		WritePostEndpoint:   makeBadEndpoint(),
+		RemovePostEndpoint:  makeBadEndpoint(),
+		ReadPostEndpoint:    makeBadEndpoint(),
+		WriteConfigEndpoint: makeBadEndpoint(),
+		ReadConfigEndpoint:  makeBadEndpoint(),
 	}
 
 	expectedMsg := "dummy error"
@@ -137,6 +164,12 @@ func TestSetBadEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := endpoints.ReadPost(context.Background(), 1, ""); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if err := endpoints.WriteConfig(context.Background(), 1, ""); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := endpoints.ReadConfig(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 }

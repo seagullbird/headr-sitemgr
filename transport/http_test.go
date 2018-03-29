@@ -34,10 +34,12 @@ func TestHTTPForbidden(t *testing.T) {
 		expectedCode int
 	}{
 		{"DeleteSiteBadRouting", "/sites/a", "DELETE", "", http.StatusBadRequest},
+		{"GetConfigBadRouting", "/sites/config/a", "GET", "", http.StatusBadRequest},
 		{"NewSite", "/sites/", "POST", "{\"sitename\": \"sitename\"}", http.StatusForbidden},
 		{"DeleteSite", "/sites/1", "DELETE", "", http.StatusForbidden},
 		{"CheckSitenameExists", "/is-sitename-exists", "POST", "{\"sitename\": \"sitename\"}", http.StatusForbidden},
 		{"GetSiteIDByUserID", "/site-id/", "GET", "", http.StatusForbidden},
+		{"GetConfig", "/sites/config/1", "GET", "", http.StatusForbidden},
 	}
 
 	for _, tt := range tests {
@@ -73,12 +75,14 @@ func TestHTTP(t *testing.T) {
 			"DeleteSite":          {nil},
 			"CheckSitenameExists": {true, nil},
 			"GetSiteIDByUserID":   {uint(1), nil},
+			"GetConfig":           {"config", nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
 			"DeleteSite":          {dummyError},
 			"CheckSitenameExists": {false, dummyError},
 			"GetSiteIDByUserID":   {uint(0), dummyError},
+			"GetConfig":           {"", dummyError},
 		},
 	} {
 		times := 1
@@ -86,6 +90,7 @@ func TestHTTP(t *testing.T) {
 		mockSvc.EXPECT().DeleteSite(gomock.Any(), gomock.Any()).Return(rets["DeleteSite"]...).Times(times)
 		mockSvc.EXPECT().CheckSitenameExists(gomock.Any(), gomock.Any()).Return(rets["CheckSitenameExists"]...).Times(times)
 		mockSvc.EXPECT().GetSiteIDByUserID(gomock.Any()).Return(rets["GetSiteIDByUserID"]...).Times(times)
+		mockSvc.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(rets["GetConfig"]...).Times(times)
 	}
 
 	logger := log.NewNopLogger()
@@ -110,12 +115,14 @@ func TestHTTP(t *testing.T) {
 			{"DeleteSite", "/sites/1", "DELETE", "", http.StatusOK, "{}"},
 			{"CheckSitenameExists", "/is-sitename-exists", "POST", "{\"sitename\": \"sitename\"}", http.StatusOK, "{\"exists\":true}"},
 			{"GetSiteIDByUserID", "/site-id/", "GET", "", http.StatusOK, "{\"site_id\":1}"},
+			{"GetConfig", "/sites/config/1", "GET", "", http.StatusOK, "{\"config\":\"config\"}"},
 		},
 		"Dummy Error": {
 			{"NewSite", "/sites/", "POST", "{\"sitename\": \"sitename\"}", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 			{"DeleteSite", "/sites/1", "DELETE", "", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 			{"CheckSitenameExists", "/is-sitename-exists", "POST", "{\"sitename\": \"sitename\"}", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 			{"GetSiteIDByUserID", "/site-id/", "GET", "", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
+			{"GetConfig", "/sites/config/1", "GET", "", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 		},
 	}
 

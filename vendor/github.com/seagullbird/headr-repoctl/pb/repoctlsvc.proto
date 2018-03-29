@@ -9,6 +9,8 @@ service Repoctl {
     rpc WritePost (WritePostRequest) returns (WritePostReply) {}
     rpc RemovePost (RemovePostRequest) returns (RemovePostReply) {}
     rpc ReadPost (ReadPostRequest) returns (ReadPostReply) {}
+    rpc WriteConfig (WriteConfigRequest) returns (WriteConfigReply) {}
+    rpc ReadConfig (ReadConfigRequest) returns (ReadConfigReply) {}
 }
 
 message NewSiteRequest {
@@ -54,6 +56,24 @@ message ReadPostRequest {
 
 message ReadPostReply {
     string content = 1;
+    string err = 2;
+}
+
+message WriteConfigRequest {
+    uint64 site_id = 1;
+    string config = 2;
+}
+
+message WriteConfigReply {
+    string err = 1;
+}
+
+message ReadConfigRequest {
+    uint64 site_id = 1;
+}
+
+message ReadConfigReply {
+    string config = 1;
     string err = 2;
 }
 

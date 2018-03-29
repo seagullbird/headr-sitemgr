@@ -58,6 +58,19 @@ func (mr *MockServiceMockRecorder) DeleteSite(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSite", reflect.TypeOf((*MockService)(nil).DeleteSite), arg0, arg1)
 }
 
+// GetConfig mocks base method
+func (m *MockService) GetConfig(arg0 context.Context, arg1 uint) (string, error) {
+	ret := m.ctrl.Call(m, "GetConfig", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetConfig indicates an expected call of GetConfig
+func (mr *MockServiceMockRecorder) GetConfig(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockService)(nil).GetConfig), arg0, arg1)
+}
+
 // GetSiteIDByUserID mocks base method
 func (m *MockService) GetSiteIDByUserID(arg0 context.Context) (uint, error) {
 	ret := m.ctrl.Call(m, "GetSiteIDByUserID", arg0)

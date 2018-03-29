@@ -23,6 +23,8 @@ type Service interface {
 	WritePost(ctx context.Context, siteID uint, filename, content string) error
 	RemovePost(ctx context.Context, siteID uint, filename string) error
 	ReadPost(ctx context.Context, siteID uint, filename string) (content string, err error)
+	WriteConfig(ctx context.Context, siteID uint, config string) error
+	ReadConfig(ctx context.Context, siteID uint) (string, error)
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -149,6 +151,27 @@ func (s basicService) ReadPost(ctx context.Context, siteID uint, filename string
 		return "", ErrUnexpected
 	}
 	return string(contentRaw), nil
+}
+
+func (s basicService) WriteConfig(ctx context.Context, siteID uint, config string) error {
+	if siteID <= 0 {
+		return ErrInvalidSiteID
+	}
+
+	sitePath := SitePath(siteID)
+	configFilePath := filepath.Join(sitePath, "source", "config.json")
+	return ioutil.WriteFile(configFilePath, []byte(config), 0644)
+}
+
+func (s basicService) ReadConfig(ctx context.Context, siteID uint) (string, error) {
+	if siteID <= 0 {
+		return "", ErrInvalidSiteID
+	}
+
+	sitePath := SitePath(siteID)
+	configFilePath := filepath.Join(sitePath, "source", "config.json")
+	configRaw, err := ioutil.ReadFile(configFilePath)
+	return string(configRaw), err
 }
 
 // SitePath is the root directory of a site. Typically has a public as well as a source sub-directory.

@@ -81,3 +81,25 @@ func (mwt loggingMiddlewareTest) TestReadPost(t *testing.T) {
 		t.Fatal("ReadPost log mismatches\n", "want:\n", want, "get\n", get)
 	}
 }
+
+func (mwt loggingMiddlewareTest) TestWriteConfig(t *testing.T) {
+	mwt.next.TestWriteConfig(t)
+	want := "method=WriteConfig siteID=0\n" +
+		"method=WriteConfig siteID=1\n"
+	get := mwt.buffer.String()
+	mwt.buffer.Reset()
+	if want != get {
+		t.Fatal("WriteConfig log mismatches\n", "want:\n", want, "get\n", get)
+	}
+}
+
+func (mwt loggingMiddlewareTest) TestReadConfig(t *testing.T) {
+	mwt.next.TestReadConfig(t)
+	want := "method=ReadConfig siteID=0\n" +
+		"method=ReadConfig siteID=1\n"
+	get := mwt.buffer.String()
+	mwt.buffer.Reset()
+	if want != get {
+		t.Fatal("ReadConfig log mismatches\n", "want:\n", want, "get\n", get)
+	}
+}

@@ -47,3 +47,9 @@ func (mw loggingMiddleware) GetSiteIDByUserID(ctx context.Context) (uint, error)
 	mw.logger.Log("method", "CheckSitenameExists", "siteID", siteID, "err", err)
 	return siteID, err
 }
+
+func (mw loggingMiddleware) GetConfig(ctx context.Context, siteID uint) (string, error) {
+	config, err := mw.next.GetConfig(ctx, siteID)
+	mw.logger.Log("method", "GetConfig", "siteID", siteID)
+	return config, err
+}

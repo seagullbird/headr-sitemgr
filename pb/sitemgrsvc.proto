@@ -8,6 +8,7 @@ service Sitemgr {
     rpc DeleteSite (ProxyDeleteSiteRequest) returns (ProxyDeleteSiteReply) {}
     rpc CheckSitenameExists (CheckSitenameExistsRequest) returns (CheckSitenameExistsReply) {}
     rpc GetSiteIDByUserID (GetSiteIDByUserIDRequest) returns (GetSiteIDByUserIDReply) {}
+    rpc GetConfig (GetConfigRequest) returns (GetConfigReply) {}
 }
 
 message CreateNewSiteRequest {
@@ -41,5 +42,14 @@ message GetSiteIDByUserIDRequest {
 
 message GetSiteIDByUserIDReply {
     uint64 site_id = 1;
+    string err = 2;
+}
+
+message GetConfigRequest {
+    uint64 site_id = 1;
+}
+
+message GetConfigReply {
+    string config = 1;
     string err = 2;
 }

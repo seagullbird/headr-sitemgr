@@ -10,6 +10,7 @@ import (
 	"github.com/seagullbird/headr-repoctl/service"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -34,6 +35,8 @@ type ServiceTest interface {
 	TestWritePost(t *testing.T)
 	TestRemovePost(t *testing.T)
 	TestReadPost(t *testing.T)
+	TestWriteConfig(t *testing.T)
+	TestReadConfig(t *testing.T)
 }
 
 // New wires up all ServiceTest middlewares and returns a ServiceTest instance.
@@ -64,6 +67,8 @@ func RunTests(t *testing.T, svctest ServiceTest) {
 	t.Run("WritePost", func(t *testing.T) { clearEnvWrapper(t, svctest.TestWritePost) })
 	t.Run("RemovePost", func(t *testing.T) { clearEnvWrapper(t, svctest.TestRemovePost) })
 	t.Run("ReadPost", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadPost) })
+	t.Run("WriteConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestWriteConfig) })
+	t.Run("ReadConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadConfig) })
 }
 
 func clearEnvWrapper(t *testing.T, tester func(t *testing.T)) {
@@ -93,7 +98,7 @@ func (s basicServiceTest) TestNewSite(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			output := s.svc.NewSite(context.Background(), tt.siteID, tt.theme)
 			if output != tt.expected {
-				t.Fatalf("%s failed; siteID=%d, theme=%s, output=%s, expected=%s", tt.name, tt.siteID, tt.theme, output, tt.expected)
+				t.Fatalf("siteID=%d, theme=%s, output=%s, expected=%s", tt.siteID, tt.theme, output, tt.expected)
 			}
 		})
 	}
@@ -119,7 +124,7 @@ func (s basicServiceTest) TestDeleteSite(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			output := s.svc.DeleteSite(context.Background(), tt.input)
 			if output != tt.expected {
-				t.Fatalf("%s failed; siteID=%d, output=%s, expected=%s", tt.name, tt.input, output, tt.expected)
+				t.Fatalf("siteID=%d, output=%s, expected=%s", tt.input, output, tt.expected)
 			}
 			if output == nil {
 				// Make sure sitepath is truly deleted
@@ -147,10 +152,10 @@ func (s basicServiceTest) TestWritePost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			output := s.svc.WritePost(context.Background(), tt.siteID, tt.filename, tt.content)
 			if output != tt.expected {
-				t.Fatalf("%s failed; siteID=%d, filename=%s, content=%s", tt.name, tt.siteID, tt.filename, tt.content)
+				t.Fatalf("siteID=%d, filename=%s, config=%s", tt.siteID, tt.filename, tt.content)
 			}
 			if output == nil {
-				// make sure the file is there and its content
+				// make sure the file is there and its config
 				postpath := service.PostPath(1, "test-post.md")
 				if _, err := os.Stat(postpath); os.IsNotExist(err) {
 					t.Fatalf("write post failed, post path does not exist: %v", err)
@@ -160,7 +165,7 @@ func (s basicServiceTest) TestWritePost(t *testing.T) {
 					t.Fatalf("Cannot read post: %v", err)
 				}
 				if string(raw) != "This is a test file" {
-					t.Fatalf("write post failed, wrong post content")
+					t.Fatalf("write post failed, wrong post config")
 				}
 			}
 		})
@@ -191,7 +196,7 @@ func (s basicServiceTest) TestRemovePost(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			output := s.svc.RemovePost(context.Background(), tt.siteID, tt.filename)
 			if output != tt.expected {
-				t.Fatalf("%s failed; siteID=%d, filename=%s, content=%s", tt.name, tt.siteID, tt.filename)
+				t.Fatalf("siteID=%d, filename=%s, config=%s", tt.siteID, tt.filename)
 			}
 			// make sure its removed
 			if output == nil {
@@ -221,17 +226,89 @@ func (s basicServiceTest) TestReadPost(t *testing.T) {
 	}
 	postpath := service.PostPath(1, "test-post.md")
 	if err := ioutil.WriteFile(postpath, []byte("This is a test file"), 0644); err != nil {
-		t.Fatalf("Failed to write file content: %v", err)
+		t.Fatalf("Failed to write file config: %v", err)
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			outputContent, outputError := s.svc.ReadPost(context.Background(), tt.siteID, tt.filename)
 			if outputError != tt.expectedError {
-				t.Fatalf("%s failed; siteID=%d, filename=%s, output_content=%s, expected_content=%s, expected_error=%v", tt.name, tt.siteID, tt.filename, outputContent, tt.expectedContent, tt.expectedError)
+				t.Fatalf("siteID=%d, filename=%s, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, tt.filename, outputContent, tt.expectedContent, tt.expectedError)
 			}
 			if outputError == nil && outputContent != tt.expectedContent {
-				t.Fatalf("%s failed; siteID=%d, filename=%s, output_content=%s, expected_content=%s, expected_error=%v", tt.name, tt.siteID, tt.filename, outputContent, tt.expectedContent, tt.expectedError)
+				t.Fatalf("siteID=%d, filename=%s, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, tt.filename, outputContent, tt.expectedContent, tt.expectedError)
+			}
+		})
+	}
+}
+
+func (s basicServiceTest) TestWriteConfig(t *testing.T) {
+	tests := []struct {
+		name     string
+		siteID   uint
+		config   string
+		expected error
+	}{
+		{"Invalid SiteID 0", 0, "", service.ErrInvalidSiteID},
+		{"Normal Functioning", 1, "This is a test config file", nil},
+	}
+
+	siteSourcePath := filepath.Join(service.SitePath(1), "source")
+	if err := os.MkdirAll(siteSourcePath, 0644); err != nil {
+		t.Fatalf("Creating config file directory failed: %v", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := s.svc.WriteConfig(context.Background(), tt.siteID, tt.config)
+			if output != tt.expected {
+				t.Fatalf("siteID=%d, config=%s, output=%v, expected=%v", tt.siteID, tt.config, output, tt.expected)
+			}
+			if output == nil {
+				// make sure the file is there and its config
+				configPath := filepath.Join(service.SitePath(tt.siteID), "source", "config.json")
+				if _, err := os.Stat(configPath); os.IsNotExist(err) {
+					t.Fatalf("Config failed, path does not exist: %v", err)
+				}
+				raw, err := ioutil.ReadFile(configPath)
+				if err != nil {
+					t.Fatalf("Cannot read config: %v", err)
+				}
+				if string(raw) != "This is a test config file" {
+					t.Fatalf("write post failed, wrong post config: %s", string(raw))
+				}
+			}
+		})
+	}
+}
+
+func (s basicServiceTest) TestReadConfig(t *testing.T) {
+	tests := []struct {
+		name            string
+		siteID          uint
+		expectedContent string
+		expectedError   error
+	}{
+		{"Invalid SiteID 0", 0, "", service.ErrInvalidSiteID},
+		{"Normal Functioning", 1, "This is a test file", nil},
+	}
+	siteSourcePath := filepath.Join(service.SitePath(1), "source")
+	if err := os.MkdirAll(siteSourcePath, 0644); err != nil {
+		t.Fatalf("Creating config file directory failed: %v", err)
+	}
+	configPath := filepath.Join(siteSourcePath, "config.json")
+	if err := ioutil.WriteFile(configPath, []byte("This is a test file"), 0644); err != nil {
+		t.Fatalf("Failed to write file config: %v", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			outputContent, outputError := s.svc.ReadConfig(context.Background(), tt.siteID)
+			if outputError != tt.expectedError {
+				t.Fatalf("siteID=%d, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, outputContent, tt.expectedContent, tt.expectedError)
+			}
+			if outputError == nil && outputContent != tt.expectedContent {
+				t.Fatalf("siteID=%d, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, outputContent, tt.expectedContent, tt.expectedError)
 			}
 		})
 	}
