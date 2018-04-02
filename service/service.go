@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	stdjwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-errors/errors"
 	"github.com/go-kit/kit/auth/jwt"
 	"github.com/go-kit/kit/log"
 	"github.com/seagullbird/headr-common/mq"
@@ -34,6 +35,11 @@ func New(repoctlsvc repoctlservice.Service, logger log.Logger, dispatcher dispat
 	}
 	return svc
 }
+
+var (
+	// ErrSiteNotFound indicates a site cannot be found
+	ErrSiteNotFound = errors.New("site not found")
+)
 
 type basicService struct {
 	repoctlsvc repoctlservice.Service
@@ -73,8 +79,12 @@ func (s basicService) NewSite(ctx context.Context, sitename string) (uint, error
 }
 
 func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
 	// delete database item
 	site, _ := s.store.GetSite(siteID)
+	if site.UserID != userID {
+		return ErrSiteNotFound
+	}
 	if err := s.store.DeleteSite(site); err != nil {
 		return err
 	}
