@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	stdjwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-errors/errors"
 	"github.com/go-kit/kit/auth/jwt"
 	"github.com/go-kit/kit/log"
 	"github.com/seagullbird/headr-common/mq"
@@ -40,6 +41,11 @@ type basicService struct {
 	dispatcher dispatch.Dispatcher
 	store      db.Store
 }
+
+var (
+	// ErrUserIDNotFound indicates the database does not hold data of an user. Typically happens when he firstly logs in.
+	ErrUserIDNotFound = errors.New("user_id not found")
+)
 
 func newBasicService(repoctlsvc repoctlservice.Service, dispatcher dispatch.Dispatcher, store db.Store) basicService {
 	return basicService{
@@ -101,7 +107,11 @@ func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) 
 
 func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"]
-	return s.store.GetSiteIDByUserID(userID.(string))
+	siteID, err := s.store.GetSiteIDByUserID(userID.(string))
+	if err != nil {
+		return 0, ErrUserIDNotFound
+	}
+	return siteID, nil
 }
 
 func (s basicService) GetConfig(ctx context.Context, siteID uint) (string, error) {

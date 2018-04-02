@@ -44,7 +44,7 @@ func (mw loggingMiddleware) CheckSitenameExists(ctx context.Context, sitename st
 
 func (mw loggingMiddleware) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 	siteID, err := mw.next.GetSiteIDByUserID(ctx)
-	mw.logger.Log("method", "CheckSitenameExists", "siteID", siteID, "err", err)
+	mw.logger.Log("method", "GetSiteIDByUserID", "siteID", siteID, "err", err)
 	return siteID, err
 }
 
