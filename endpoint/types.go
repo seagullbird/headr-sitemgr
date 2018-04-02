@@ -23,7 +23,7 @@ type DeleteSiteResponse struct {
 
 // CheckSitenameExistsRequest collects the request parameters for the CheckSitenameExists method.
 type CheckSitenameExistsRequest struct {
-	Sitename string `json:"sitename"`
+	Sitename string `json:"site_name"`
 }
 
 // CheckSitenameExistsResponse collects the response values for the CheckSitenameExists method.
