@@ -92,7 +92,11 @@ func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
 }
 
 func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
-	return s.store.CheckSitenameExists(sitename)
+	exists, err := s.store.CheckSitenameExists(sitename)
+	if err != nil {
+		return true, nil
+	}
+	return exists, nil
 }
 
 func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
