@@ -9,7 +9,6 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"github.com/seagullbird/headr-sitemgr/endpoint"
-	"github.com/seagullbird/headr-sitemgr/service"
 	"net/http"
 	"strconv"
 )
@@ -87,8 +86,6 @@ func err2code(err error) int {
 		return http.StatusForbidden
 	case ErrBadRouting:
 		return http.StatusBadRequest
-	case service.ErrUserIDNotFound:
-		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError
 }
