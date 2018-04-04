@@ -104,6 +104,7 @@ func (s Set) ReadPost(ctx context.Context, siteID uint, filename string) (string
 func (s Set) WriteConfig(ctx context.Context, siteID uint, config string) error {
 	resp, err := s.WriteConfigEndpoint(ctx, WriteConfigRequest{
 		SiteID: siteID,
+		Config: config,
 	})
 	if err != nil {
 		return err

@@ -56,6 +56,6 @@ func (mw loggingMiddleware) GetConfig(ctx context.Context, siteID uint) (string,
 
 func (mw loggingMiddleware) UpdateConfig(ctx context.Context, siteID uint, config string) error {
 	err := mw.next.UpdateConfig(ctx, siteID, config)
-	mw.logger.Log("method", "UpdateConfig", "siteID", siteID)
+	mw.logger.Log("method", "UpdateConfig", "siteID", siteID, "err", err)
 	return err
 }
