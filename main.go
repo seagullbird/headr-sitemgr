@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/go-kit/kit/log"
-	"github.com/seagullbird/headr-common/mq"
 	"github.com/seagullbird/headr-common/mq/client"
 	"github.com/seagullbird/headr-common/mq/dispatch"
 	repoctltransport "github.com/seagullbird/headr-repoctl/transport"
@@ -36,9 +35,9 @@ func main() {
 
 	// mq dispatcher
 	var (
-		servername = mq.MQSERVERNAME
-		username   = mq.MQUSERNAME
-		passwd     = mq.MQSERVERPWD
+		servername = os.Getenv("RABBITMQ_SERVER")
+		username   = os.Getenv("RABBITMQ_USER")
+		passwd     = os.Getenv("RABBITMQ_PASS")
 	)
 	dispatcher, err := dispatch.NewDispatcher(client.New(servername, username, passwd), logger)
 	if err != nil {
