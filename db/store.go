@@ -24,9 +24,10 @@ type databaseStore struct {
 
 // New creates a databaseStore instance
 func New(logger log.Logger) Store {
-	db, err := gorm.Open("postgres", os.Getenv("POSTGRESQL_ARGS"))
+	args := os.Getenv("POSTGRESQL_ARGS")
+	db, err := gorm.Open("postgres", args)
 	if err != nil {
-		logger.Log("error_desc", "Failed to connected to PostgreSQL", "error", err)
+		logger.Log("error_desc", "Failed to connected to PostgreSQL", "args", args, "error", err)
 	}
 	db.AutoMigrate(&Site{})
 	return &databaseStore{
