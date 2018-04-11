@@ -29,6 +29,7 @@ push-image:
       name: "Move Kubernetes files"
       code: |
         mv k8s-deploy.yaml.template $WERCKER_OUTPUT_DIR
+    - internal/store-container
     - internal/docker-push:
         working-dir: $WERCKER_ROOT
         env: RABBITMQ_SERVER=${RABBITMQ_SERVER} RABBITMQ_USER=${RABBITMQ_USER} RABBITMQ_PASS=${RABBITMQ_PASS}
@@ -38,7 +39,6 @@ push-image:
         registry: $GCR_HOST/v2
         username: _json_key
         password: $GCP_KEY_JSON
-    - internal/store-container
 
 deploy-to-kubernetes:
   steps:
