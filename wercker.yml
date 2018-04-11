@@ -29,7 +29,6 @@ push-image:
       name: "Move Kubernetes files"
       code: |
         mv k8s-deploy.yaml.template $WERCKER_OUTPUT_DIR
-        echo $POSTGRESQL_ARGS
     - internal/docker-push:
         working-dir: $WERCKER_ROOT
         env: RABBITMQ_SERVER=${RABBITMQ_SERVER} RABBITMQ_USER=${RABBITMQ_USER} RABBITMQ_PASS=${RABBITMQ_PASS}
