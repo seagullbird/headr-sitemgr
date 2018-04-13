@@ -79,6 +79,15 @@ func (s basicService) NewSite(ctx context.Context, sitename string) (uint, error
 }
 
 func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
+	// delete server service
+	var delsiteEvent = mq.SiteUpdatedEvent{
+		SiteID:     siteID,
+		ReceivedOn: time.Now().Unix(),
+	}
+	if err := s.dispatcher.DispatchMessage("del_site_server", delsiteEvent); err != nil {
+		return err
+	}
+
 	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
 	// delete database item
 	site, _ := s.store.GetSite(siteID)
@@ -89,16 +98,7 @@ func (s basicService) DeleteSite(ctx context.Context, siteID uint) error {
 		return err
 	}
 	// delete static files
-	err := s.repoctlsvc.DeleteSite(ctx, siteID)
-	if err != nil {
-		return err
-	}
-	// delete server service
-	var delsiteEvent = mq.SiteUpdatedEvent{
-		SiteID:     siteID,
-		ReceivedOn: time.Now().Unix(),
-	}
-	return s.dispatcher.DispatchMessage("del_site_server", delsiteEvent)
+	return s.repoctlsvc.DeleteSite(ctx, siteID)
 }
 
 func (s basicService) CheckSitenameExists(ctx context.Context, sitename string) (bool, error) {
