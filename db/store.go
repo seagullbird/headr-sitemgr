@@ -51,7 +51,7 @@ func (s *databaseStore) GetSite(id uint) (*Site, error) {
 }
 
 func (s *databaseStore) PatchSite(site *Site) error {
-	return nil
+	return s.db.Save(site).Error
 }
 
 func (s *databaseStore) CheckSitenameExists(sitename string) (bool, error) {

@@ -19,4 +19,5 @@ type Site struct {
 type Theme struct {
 	Name      string `json:"name"`
 	ThumbNail string `json:"thumb_nail"`
+	HomePage  string `json:"home_page"`
 }
