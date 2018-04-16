@@ -14,3 +14,9 @@ type Site struct {
 	Sitename string `json:"sitename"`
 	Theme    string `json:"theme"`
 }
+
+// Theme represents a theme
+type Theme struct {
+	Name      string `json:"name"`
+	ThumbNail string `json:"thumb_nail"`
+}

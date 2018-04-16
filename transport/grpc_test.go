@@ -46,6 +46,7 @@ func TestGRPCApplication(t *testing.T) {
 			"GetSiteIDByUserID":   {uint(1), nil},
 			"GetConfig":           {"config", nil},
 			"UpdateConfig":        {nil},
+			"GetThemes":           {"themes", nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
@@ -54,6 +55,7 @@ func TestGRPCApplication(t *testing.T) {
 			"GetSiteIDByUserID":   {uint(0), dummyError},
 			"GetConfig":           {"", dummyError},
 			"UpdateConfig":        {dummyError},
+			"GetThemes":           {"", dummyError},
 		},
 	} {
 		times := 2
@@ -63,6 +65,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().GetSiteIDByUserID(gomock.Any()).Return(rets["GetSiteIDByUserID"]...).Times(times)
 		mockSvc.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(rets["GetConfig"]...).Times(times)
 		mockSvc.EXPECT().UpdateConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateConfig"]...).Times(times)
+		mockSvc.EXPECT().GetThemes(gomock.Any(), gomock.Any()).Return(rets["GetThemes"]...).Times(times)
 	}
 
 	// Start GRPC server with the mock service
@@ -158,7 +161,14 @@ func TestGRPCApplication(t *testing.T) {
 				svcErr := mockSvc.UpdateConfig(ctx, siteID, config)
 				if !tt.judger(clientErr, svcErr) {
 					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
-
+				}
+			})
+			t.Run("GetThemes", func(t *testing.T) {
+				siteID := uint(1)
+				clientOutput, clientErr := client.GetThemes(ctx, siteID)
+				svcOutput, svcErr := mockSvc.GetThemes(ctx, siteID)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
 				}
 			})
 		})
@@ -181,6 +191,7 @@ func TestGRPCTransport(t *testing.T) {
 		GetSiteIDByUserIDEndpoint:   makeBadEndpoint(),
 		GetConfigEndpoint:           makeBadEndpoint(),
 		UpdateConfigEndpoint:        makeBadEndpoint(),
+		GetThemesEndpoint:           makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -209,6 +220,9 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := client.UpdateConfig(context.Background(), 1, "config"); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := client.GetThemes(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

@@ -40,6 +40,7 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	// GET		/site-id						get a user's site's id for the given user id
 	// GET		/sites/config/:id				get a site's config by site id
 	// PUT		/sites/config/:id				update a site's config
+	// GET 		/sites/themes/?site_id=:siteID	get all themes
 
 	r.Methods("POST").Path("/sites/").Handler(httptransport.NewServer(
 		endpoints.NewSiteEndpoint,
@@ -74,6 +75,12 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	r.Methods("PUT").Path("/sites/config/{id}").Handler(httptransport.NewServer(
 		endpoints.UpdateConfigEndpoint,
 		decodeHTTPUpdateConfigRequest,
+		encodeHTTPGenericResponse,
+		options...,
+	))
+	r.Methods("GET").Path("/sites/themes/").Handler(httptransport.NewServer(
+		endpoints.GetThemesEndpoint,
+		decodeHTTPGetThemesRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
@@ -166,4 +173,13 @@ func decodeHTTPCheckSitenameExistsRequest(_ context.Context, r *http.Request) (i
 	var req endpoint.CheckSitenameExistsRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	return req, err
+}
+
+func decodeHTTPGetThemesRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	siteID := r.URL.Query().Get("site_id")
+	i, err := strconv.Atoi(siteID)
+	if err != nil {
+		return nil, ErrBadRouting
+	}
+	return endpoint.GetThemesRequest{SiteID: uint(i)}, err
 }

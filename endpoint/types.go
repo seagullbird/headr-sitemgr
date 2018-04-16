@@ -63,3 +63,14 @@ type UpdateConfigRequest struct {
 type UpdateConfigResponse struct {
 	Err error `json:"-"`
 }
+
+// GetThemesRequest collects the request parameters for the GetThemes method.
+type GetThemesRequest struct {
+	SiteID uint `json:"site_id"`
+}
+
+// GetThemesResponse collects the response values for the GetThemes method.
+type GetThemesResponse struct {
+	Themes string `json:"themes"`
+	Err    error  `json:"-"`
+}

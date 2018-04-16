@@ -20,6 +20,7 @@ type grpcServer struct {
 	getsiteidbyuserid   grpctransport.Handler
 	getconfig           grpctransport.Handler
 	updateconfig        grpctransport.Handler
+	getthemes           grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC SitemgrServer.
@@ -63,6 +64,12 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.SitemgrServer {
 			endpoints.UpdateConfigEndpoint,
 			decodeGRPCUpdateConfigRequest,
 			encodeGRPCUpdateConfigResponse,
+			options...,
+		),
+		getthemes: grpctransport.NewServer(
+			endpoints.GetThemesEndpoint,
+			decodeGRPCGetThemesRequest,
+			encodeGRPCGetThemesResponse,
 			options...,
 		),
 	}
@@ -147,6 +154,18 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			options...,
 		).Endpoint()
 	}
+	var getthemesEndpoint kitendpoint.Endpoint
+	{
+		getthemesEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Sitemgr",
+			"GetThemes",
+			encodeGRPCGetThemesRequest,
+			decodeGRPCGetThemesResponse,
+			pb.GetThemesReply{},
+			options...,
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
@@ -157,6 +176,7 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 		GetSiteIDByUserIDEndpoint:   getsiteidbyuseridEndpoint,
 		GetConfigEndpoint:           getconfigEndpoint,
 		UpdateConfigEndpoint:        updateconfigEndpoint,
+		GetThemesEndpoint:           getthemesEndpoint,
 	}
 }
 
@@ -206,6 +226,14 @@ func (s *grpcServer) UpdateConfig(ctx context.Context, req *pb.UpdateConfigReque
 		return nil, err
 	}
 	return rep.(*pb.UpdateConfigReply), nil
+}
+
+func (s *grpcServer) GetThemes(ctx context.Context, req *pb.GetThemesRequest) (*pb.GetThemesReply, error) {
+	_, rep, err := s.getthemes.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.GetThemesReply), nil
 }
 
 // NewSite
@@ -357,6 +385,32 @@ func encodeGRPCUpdateConfigResponse(_ context.Context, response interface{}) (in
 func decodeGRPCUpdateConfigResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.UpdateConfigReply)
 	return endpoint.UpdateConfigResponse{Err: str2err(reply.Err)}, nil
+}
+
+// GetThemes
+func encodeGRPCGetThemesRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(endpoint.GetThemesRequest)
+	return &pb.GetThemesRequest{SiteId: uint64(req.SiteID)}, nil
+}
+
+func decodeGRPCGetThemesRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetThemesRequest)
+	return endpoint.GetThemesRequest{
+		SiteID: uint(req.SiteId),
+	}, nil
+}
+
+func encodeGRPCGetThemesResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(endpoint.GetThemesResponse)
+	return &pb.GetThemesReply{
+		Themes: resp.Themes,
+		Err:    err2str(resp.Err),
+	}, nil
+}
+
+func decodeGRPCGetThemesResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetThemesReply)
+	return endpoint.GetThemesResponse{Themes: reply.Themes, Err: str2err(reply.Err)}, nil
 }
 
 func err2str(err error) string {

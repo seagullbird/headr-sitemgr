@@ -17,6 +17,7 @@ type Set struct {
 	GetSiteIDByUserIDEndpoint   endpoint.Endpoint
 	GetConfigEndpoint           endpoint.Endpoint
 	UpdateConfigEndpoint        endpoint.Endpoint
+	GetThemesEndpoint           endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server.
@@ -28,6 +29,7 @@ func New(svc service.Service, logger log.Logger) Set {
 		GetSiteIDByUserIDEndpoint:   Middlewares(MakeGetSiteIDByUserIDEndpoint(svc), logger),
 		GetConfigEndpoint:           Middlewares(MakeGetConfigEndpoint(svc), logger),
 		UpdateConfigEndpoint:        Middlewares(MakeUpdateConfigEndpoint(svc), logger),
+		GetThemesEndpoint:           Middlewares(MakeGetThemesEndpoint(svc), logger),
 	}
 }
 
@@ -97,6 +99,17 @@ func (s Set) UpdateConfig(ctx context.Context, siteID uint, config string) error
 	return response.Err
 }
 
+// GetThemes implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) GetThemes(ctx context.Context, siteID uint) (string, error) {
+	resp, err := s.GetThemesEndpoint(ctx, GetThemesRequest{SiteID: siteID})
+	if err != nil {
+		return "", err
+	}
+	response := resp.(GetThemesResponse)
+	return response.Themes, response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -150,6 +163,15 @@ func MakeUpdateConfigEndpoint(svc service.Service) endpoint.Endpoint {
 	}
 }
 
+// MakeGetThemesEndpoint constructs a GetThemes endpoint wrapping the service.
+func MakeGetThemesEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(GetThemesRequest)
+		themes, err := svc.GetThemes(ctx, req.SiteID)
+		return GetThemesResponse{Themes: themes, Err: err}, nil
+	}
+}
+
 // Failer is an interface that should be implemented by response types.
 // Response encoders can check if responses are Failer, and if so if they've
 // failed, and if so encode them using a separate write path based on the error.
@@ -174,3 +196,6 @@ func (r GetConfigResponse) Failed() error { return r.Err }
 
 // Failed implements Failer.
 func (r UpdateConfigResponse) Failed() error { return r.Err }
+
+// Failed implements Failer.
+func (r GetThemesResponse) Failed() error { return r.Err }
