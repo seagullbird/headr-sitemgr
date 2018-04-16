@@ -84,6 +84,19 @@ func (mr *MockServiceMockRecorder) GetSiteIDByUserID(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSiteIDByUserID", reflect.TypeOf((*MockService)(nil).GetSiteIDByUserID), arg0)
 }
 
+// GetThemes mocks base method
+func (m *MockService) GetThemes(arg0 context.Context, arg1 uint) (string, error) {
+	ret := m.ctrl.Call(m, "GetThemes", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetThemes indicates an expected call of GetThemes
+func (mr *MockServiceMockRecorder) GetThemes(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetThemes", reflect.TypeOf((*MockService)(nil).GetThemes), arg0, arg1)
+}
+
 // NewSite mocks base method
 func (m *MockService) NewSite(arg0 context.Context, arg1 string) (uint, error) {
 	ret := m.ctrl.Call(m, "NewSite", arg0, arg1)

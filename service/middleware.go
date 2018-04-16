@@ -59,3 +59,9 @@ func (mw loggingMiddleware) UpdateConfig(ctx context.Context, siteID uint, confi
 	mw.logger.Log("method", "UpdateConfig", "siteID", siteID, "err", err)
 	return err
 }
+
+func (mw loggingMiddleware) GetThemes(ctx context.Context, siteID uint) (string, error) {
+	s, err := mw.next.GetThemes(ctx, siteID)
+	mw.logger.Log("method", "GetThemes", "siteID", siteID, "err", err)
+	return s, err
+}
