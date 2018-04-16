@@ -41,6 +41,7 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	// GET		/sites/config/:id				get a site's config by site id
 	// PUT		/sites/config/:id				update a site's config
 	// GET 		/sites/themes/?site_id=:siteID	get all themes
+	// PATCH    /sites/:id						partially update a site (only theme)
 
 	r.Methods("POST").Path("/sites/").Handler(httptransport.NewServer(
 		endpoints.NewSiteEndpoint,
@@ -81,6 +82,12 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	r.Methods("GET").Path("/sites/themes/").Handler(httptransport.NewServer(
 		endpoints.GetThemesEndpoint,
 		decodeHTTPGetThemesRequest,
+		encodeHTTPGenericResponse,
+		options...,
+	))
+	r.Methods("PATCH").Path("/sites/{id}").Handler(httptransport.NewServer(
+		endpoints.UpdateSiteThemeEndpoint,
+		decodeHTTPUpdateSiteThemeRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
@@ -182,4 +189,25 @@ func decodeHTTPGetThemesRequest(_ context.Context, r *http.Request) (interface{}
 		return nil, ErrBadRouting
 	}
 	return endpoint.GetThemesRequest{SiteID: uint(i)}, err
+}
+
+func decodeHTTPUpdateSiteThemeRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	siteID, ok := vars["id"]
+	if !ok {
+		return nil, ErrBadRouting
+	}
+	i, err := strconv.Atoi(siteID)
+	if err != nil {
+		return nil, ErrBadRouting
+	}
+
+	var payload struct {
+		Theme string `json:"theme"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		return nil, ErrBadRouting
+	}
+	return endpoint.UpdateSiteThemeRequest{SiteID: uint(i), Theme: payload.Theme}, nil
 }

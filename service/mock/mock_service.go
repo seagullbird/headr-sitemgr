@@ -121,3 +121,15 @@ func (m *MockService) UpdateConfig(arg0 context.Context, arg1 uint, arg2 string)
 func (mr *MockServiceMockRecorder) UpdateConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockService)(nil).UpdateConfig), arg0, arg1, arg2)
 }
+
+// UpdateSiteTheme mocks base method
+func (m *MockService) UpdateSiteTheme(arg0 context.Context, arg1 uint, arg2 string) error {
+	ret := m.ctrl.Call(m, "UpdateSiteTheme", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSiteTheme indicates an expected call of UpdateSiteTheme
+func (mr *MockServiceMockRecorder) UpdateSiteTheme(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSiteTheme", reflect.TypeOf((*MockService)(nil).UpdateSiteTheme), arg0, arg1, arg2)
+}

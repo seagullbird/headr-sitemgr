@@ -74,3 +74,14 @@ type GetThemesResponse struct {
 	Themes string `json:"themes"`
 	Err    error  `json:"-"`
 }
+
+// UpdateSiteThemeRequest collects the request parameters for the UpdateSiteTheme method.
+type UpdateSiteThemeRequest struct {
+	SiteID uint   `json:"site_id"`
+	Theme  string `json:"theme"`
+}
+
+// UpdateSiteThemeResponse collects the response values for the UpdateSiteTheme method.
+type UpdateSiteThemeResponse struct {
+	Err error `json:"-"`
+}

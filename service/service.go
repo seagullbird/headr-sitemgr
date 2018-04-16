@@ -26,6 +26,7 @@ type Service interface {
 	GetConfig(ctx context.Context, siteID uint) (string, error)
 	UpdateConfig(ctx context.Context, siteID uint, config string) error
 	GetThemes(ctx context.Context, siteID uint) (string, error)
+	UpdateSiteTheme(ctx context.Context, siteID uint, theme string) error
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -119,10 +120,22 @@ func (s basicService) GetSiteIDByUserID(ctx context.Context) (uint, error) {
 }
 
 func (s basicService) GetConfig(ctx context.Context, siteID uint) (string, error) {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
+	site, _ := s.store.GetSite(siteID)
+	if site.UserID != userID {
+		return "", ErrSiteNotFound
+	}
+
 	return s.repoctlsvc.ReadConfig(ctx, siteID)
 }
 
 func (s basicService) UpdateConfig(ctx context.Context, siteID uint, config string) error {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
+	site, _ := s.store.GetSite(siteID)
+	if site.UserID != userID {
+		return ErrSiteNotFound
+	}
+
 	return s.repoctlsvc.WriteConfig(ctx, siteID, config)
 }
 
@@ -153,4 +166,31 @@ func (s basicService) GetThemes(ctx context.Context, siteID uint) (string, error
 		return "", err
 	}
 	return string(respRaw), nil
+}
+
+func (s basicService) UpdateSiteTheme(ctx context.Context, siteID uint, theme string) error {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
+	site, _ := s.store.GetSite(siteID)
+	if site.UserID != userID {
+		return ErrSiteNotFound
+	}
+	// https://stackoverflow.com/questions/11066946/partly-json-unmarshal-into-a-map-in-go?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+	originConfig, err := s.repoctlsvc.ReadConfig(ctx, siteID)
+	if err != nil {
+		return err
+	}
+
+	var configMap map[string]*json.RawMessage
+	err = json.Unmarshal([]byte(originConfig), &configMap)
+	if err != nil {
+		return err
+	}
+	themeRaw, err := json.Marshal(theme)
+	if err != nil {
+		return err
+	}
+	*configMap["theme"] = themeRaw
+	newConfigRaw, err := json.Marshal(configMap)
+
+	return s.repoctlsvc.WriteConfig(ctx, siteID, string(newConfigRaw))
 }

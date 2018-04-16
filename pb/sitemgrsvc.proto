@@ -11,6 +11,7 @@ service Sitemgr {
     rpc GetConfig (GetConfigRequest) returns (GetConfigReply) {}
     rpc UpdateConfig (UpdateConfigRequest) returns (UpdateConfigReply) {}
     rpc GetThemes (GetThemesRequest) returns (GetThemesReply) {}
+    rpc UpdateSiteTheme (UpdateSiteThemeRequest) returns (UpdateSiteThemeReply) {}
 }
 
 message CreateNewSiteRequest {
@@ -72,4 +73,13 @@ message GetThemesRequest {
 message GetThemesReply {
     string themes = 1;
     string err = 2;
+}
+
+message UpdateSiteThemeRequest {
+    uint64 site_id = 1;
+    string theme = 2;
+}
+
+message UpdateSiteThemeReply {
+    string err = 1;
 }

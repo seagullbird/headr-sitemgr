@@ -47,6 +47,7 @@ func TestGRPCApplication(t *testing.T) {
 			"GetConfig":           {"config", nil},
 			"UpdateConfig":        {nil},
 			"GetThemes":           {"themes", nil},
+			"UpdateSiteTheme":     {nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
@@ -56,6 +57,7 @@ func TestGRPCApplication(t *testing.T) {
 			"GetConfig":           {"", dummyError},
 			"UpdateConfig":        {dummyError},
 			"GetThemes":           {"", dummyError},
+			"UpdateSiteTheme":     {dummyError},
 		},
 	} {
 		times := 2
@@ -66,6 +68,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(rets["GetConfig"]...).Times(times)
 		mockSvc.EXPECT().UpdateConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateConfig"]...).Times(times)
 		mockSvc.EXPECT().GetThemes(gomock.Any(), gomock.Any()).Return(rets["GetThemes"]...).Times(times)
+		mockSvc.EXPECT().UpdateSiteTheme(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateSiteTheme"]...).Times(times)
 	}
 
 	// Start GRPC server with the mock service
@@ -171,6 +174,15 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("UpdateSiteTheme", func(t *testing.T) {
+				siteID := uint(1)
+				theme := "theme"
+				clientErr := client.UpdateSiteTheme(ctx, siteID, theme)
+				svcErr := mockSvc.UpdateSiteTheme(ctx, siteID, theme)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 
@@ -192,6 +204,7 @@ func TestGRPCTransport(t *testing.T) {
 		GetConfigEndpoint:           makeBadEndpoint(),
 		UpdateConfigEndpoint:        makeBadEndpoint(),
 		GetThemesEndpoint:           makeBadEndpoint(),
+		UpdateSiteThemeEndpoint:     makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -225,6 +238,8 @@ func TestGRPCTransport(t *testing.T) {
 	if _, err := client.GetThemes(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
-
+	if err := client.UpdateSiteTheme(context.Background(), 1, "theme"); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
 	baseServer.Stop()
 }

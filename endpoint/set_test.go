@@ -41,6 +41,7 @@ func TestSet(t *testing.T) {
 			"GetConfig":           {"string", nil},
 			"UpdateConfig":        {nil},
 			"GetThemes":           {"themes", nil},
+			"UpdateSiteTheme":     {nil},
 		}},
 		{"Dummy Error", map[string][]interface{}{
 			"NewSite":             {uint(0), dummyError},
@@ -50,6 +51,7 @@ func TestSet(t *testing.T) {
 			"GetConfig":           {"", dummyError},
 			"UpdateConfig":        {dummyError},
 			"GetThemes":           {"", dummyError},
+			"UpdateSiteTheme":     {dummyError},
 		}},
 	}
 
@@ -64,6 +66,7 @@ func TestSet(t *testing.T) {
 			mockSvc.EXPECT().GetConfig(gomock.Any(), gomock.Any()).Return(tt.rets["GetConfig"]...).Times(times)
 			mockSvc.EXPECT().UpdateConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["UpdateConfig"]...).Times(times)
 			mockSvc.EXPECT().GetThemes(gomock.Any(), gomock.Any()).Return(tt.rets["GetThemes"]...).Times(times)
+			mockSvc.EXPECT().UpdateSiteTheme(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["UpdateSiteTheme"]...).Times(times)
 
 			t.Run("NewSite", func(t *testing.T) {
 				sitename := "sitename"
@@ -123,6 +126,15 @@ func TestSet(t *testing.T) {
 
 				}
 			})
+			t.Run("UpdateSiteTheme", func(t *testing.T) {
+				siteID := uint(1)
+				theme := "theme"
+				setErr := endpoints.UpdateSiteTheme(ctx, siteID, theme)
+				svcErr := mockSvc.UpdateSiteTheme(ctx, siteID, theme)
+				if setErr != svcErr {
+					t.Fatal("\nsetErr: ", setErr, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 }
@@ -144,6 +156,7 @@ func TestSetBadEndpoint(t *testing.T) {
 		GetConfigEndpoint:           makeBadEndpoint(endpoint.GetConfigResponse{Config: "config", Err: errors.New("dummy error")}),
 		UpdateConfigEndpoint:        makeBadEndpoint(endpoint.UpdateConfigResponse{Err: errors.New("dummy error")}),
 		GetThemesEndpoint:           makeBadEndpoint(endpoint.GetThemesResponse{Err: errors.New("dummy error")}),
+		UpdateSiteThemeEndpoint:     makeBadEndpoint(endpoint.UpdateSiteThemeResponse{Err: errors.New("dummy error")}),
 	}
 
 	expectedMsg := "dummy error"
@@ -166,6 +179,9 @@ func TestSetBadEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := endpoints.GetThemes(context.Background(), 1); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if err := endpoints.UpdateSiteTheme(context.Background(), 1, "theme"); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 }
