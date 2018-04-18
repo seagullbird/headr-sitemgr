@@ -13,6 +13,7 @@ service Sitemgr {
     rpc GetThemes (GetThemesRequest) returns (GetThemesReply) {}
     rpc UpdateSiteTheme (UpdateSiteThemeRequest) returns (UpdateSiteThemeReply) {}
     rpc PostAbout (PostAboutRequest) returns (PostAboutReply) {}
+    rpc GetAbout (GetAboutRequest) returns (GetAboutReply) {}
 }
 
 message CreateNewSiteRequest {
@@ -92,4 +93,13 @@ message PostAboutRequest {
 
 message PostAboutReply {
     string err = 1;
+}
+
+message GetAboutRequest {
+    uint64 site_id = 1;
+}
+
+message GetAboutReply {
+    string content = 1;
+    string err = 2;
 }

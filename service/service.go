@@ -14,6 +14,7 @@ import (
 	repoctlservice "github.com/seagullbird/headr-repoctl/service"
 	"github.com/seagullbird/headr-sitemgr/config"
 	"github.com/seagullbird/headr-sitemgr/db"
+	"strings"
 	"time"
 )
 
@@ -28,6 +29,7 @@ type Service interface {
 	GetThemes(ctx context.Context, siteID uint) (string, error)
 	UpdateSiteTheme(ctx context.Context, siteID uint, theme string) error
 	PostAbout(ctx context.Context, siteID uint, content string) error
+	GetAbout(ctx context.Context, siteID uint) (string, error)
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -226,4 +228,19 @@ func (s basicService) PostAbout(ctx context.Context, siteID uint, content string
 	content = fm + content
 
 	return s.repoctlsvc.UpdateAbout(ctx, siteID, content)
+}
+
+func (s basicService) GetAbout(ctx context.Context, siteID uint) (string, error) {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
+	site, _ := s.store.GetSite(siteID)
+	if site.UserID != userID {
+		return "", ErrSiteNotFound
+	}
+
+	content, err := s.repoctlsvc.ReadAbout(ctx, siteID)
+	if err != nil {
+		return "", err
+	}
+	content = strings.TrimLeft(strings.Split(content, "---")[2], "\n")
+	return content, nil
 }

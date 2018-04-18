@@ -37,6 +37,7 @@ func TestSet(t *testing.T) {
 			"WriteConfig": {nil},
 			"ReadConfig":  {"string", nil},
 			"UpdateAbout": {nil},
+			"ReadAbout":   {"string", nil},
 		}},
 		{"Dummy Error", map[string][]interface{}{
 			"NewSite":     {dummyError},
@@ -47,6 +48,7 @@ func TestSet(t *testing.T) {
 			"WriteConfig": {dummyError},
 			"ReadConfig":  {"", dummyError},
 			"UpdateAbout": {dummyError},
+			"ReadAbout":   {"", dummyError},
 		}},
 	}
 
@@ -61,6 +63,7 @@ func TestSet(t *testing.T) {
 			mockSvc.EXPECT().WriteConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["WriteConfig"]...).Times(2)
 			mockSvc.EXPECT().ReadConfig(gomock.Any(), gomock.Any()).Return(tt.rets["ReadConfig"]...).Times(2)
 			mockSvc.EXPECT().UpdateAbout(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["UpdateAbout"]...).Times(2)
+			mockSvc.EXPECT().ReadAbout(gomock.Any(), gomock.Any()).Return(tt.rets["ReadAbout"]...).Times(2)
 
 			t.Run("NewSite", func(t *testing.T) {
 				ctx := context.Background()
@@ -141,6 +144,15 @@ func TestSet(t *testing.T) {
 					t.Fatal(setErr)
 				}
 			})
+			t.Run("ReadAbout", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				setOutput, setErr := endpoints.ReadAbout(ctx, siteID)
+				svcOutput, svcErr := mockSvc.ReadAbout(ctx, siteID)
+				if setOutput != svcOutput || setErr != svcErr {
+					t.Fatal(setOutput, setErr)
+				}
+			})
 		})
 	}
 }
@@ -162,6 +174,7 @@ func TestSetBadEndpoint(t *testing.T) {
 		WriteConfigEndpoint: makeBadEndpoint(),
 		ReadConfigEndpoint:  makeBadEndpoint(),
 		UpdateAboutEndpoint: makeBadEndpoint(),
+		ReadAboutEndpoint:   makeBadEndpoint(),
 	}
 
 	expectedMsg := "dummy error"
@@ -187,6 +200,9 @@ func TestSetBadEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := endpoints.UpdateAbout(context.Background(), 1, ""); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := endpoints.ReadAbout(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 }

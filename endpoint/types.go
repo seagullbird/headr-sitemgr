@@ -96,3 +96,14 @@ type PostAboutRequest struct {
 type PostAboutResponse struct {
 	Err error `json:"-"`
 }
+
+// GetAboutRequest collects the request parameters for the GetAbout method.
+type GetAboutRequest struct {
+	SiteID uint `json:"site_id"`
+}
+
+// GetAboutResponse collects the response values for the GetAbout method.
+type GetAboutResponse struct {
+	Content string `json:"content"`
+	Err     error  `json:"-"`
+}

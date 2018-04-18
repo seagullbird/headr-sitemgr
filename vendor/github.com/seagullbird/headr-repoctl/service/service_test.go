@@ -38,6 +38,7 @@ type ServiceTest interface {
 	TestWriteConfig(t *testing.T)
 	TestReadConfig(t *testing.T)
 	TestUpdateAbout(t *testing.T)
+	TestReadAbout(t *testing.T)
 }
 
 // New wires up all ServiceTest middlewares and returns a ServiceTest instance.
@@ -71,6 +72,7 @@ func RunTests(t *testing.T, svctest ServiceTest) {
 	t.Run("WriteConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestWriteConfig) })
 	t.Run("ReadConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadConfig) })
 	t.Run("UpdateAbout", func(t *testing.T) { clearEnvWrapper(t, svctest.TestUpdateAbout) })
+	t.Run("ReadAbout", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadAbout) })
 }
 
 func clearEnvWrapper(t *testing.T, tester func(t *testing.T)) {
@@ -228,7 +230,7 @@ func (s basicServiceTest) TestReadPost(t *testing.T) {
 	}
 	postpath := service.PostPath(1, "test-post.md")
 	if err := ioutil.WriteFile(postpath, []byte("This is a test file"), 0644); err != nil {
-		t.Fatalf("Failed to write file config: %v", err)
+		t.Fatalf("Failed to write file content: %v", err)
 	}
 
 	for _, tt := range tests {
@@ -347,6 +349,39 @@ func (s basicServiceTest) TestUpdateAbout(t *testing.T) {
 				if string(raw) != "This is an about file" {
 					t.Fatalf("update about failed, wrong about content")
 				}
+			}
+		})
+	}
+}
+
+func (s basicServiceTest) TestReadAbout(t *testing.T) {
+	tests := []struct {
+		name            string
+		siteID          uint
+		expectedContent string
+		expectedError   error
+	}{
+		{"Invalid SiteID 0", 0, "", service.ErrInvalidSiteID},
+		{"Normal Functioning", 1, "This is an about file", nil},
+	}
+	sitePath := service.SitePath(1)
+	aboutDir := filepath.Join(sitePath, "source", "content", "about")
+	if err := os.MkdirAll(aboutDir, 0644); err != nil {
+		t.Fatalf("Creating about file directory failed: %v", err)
+	}
+	aboutPath := filepath.Join(aboutDir, "_index.md")
+	if err := ioutil.WriteFile(aboutPath, []byte("This is an about file"), 0644); err != nil {
+		t.Fatalf("Failed to write about content: %v", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			outputContent, outputError := s.svc.ReadAbout(context.Background(), tt.siteID)
+			if outputError != tt.expectedError {
+				t.Fatalf("siteID=%d, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, outputContent, tt.expectedContent, tt.expectedError)
+			}
+			if outputError == nil && outputContent != tt.expectedContent {
+				t.Fatalf("siteID=%d, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, outputContent, tt.expectedContent, tt.expectedError)
 			}
 		})
 	}

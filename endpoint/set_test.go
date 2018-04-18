@@ -43,6 +43,7 @@ func TestSet(t *testing.T) {
 			"GetThemes":           {"themes", nil},
 			"UpdateSiteTheme":     {nil},
 			"PostAbout":           {nil},
+			"GetAbout":            {"content", nil},
 		}},
 		{"Dummy Error", map[string][]interface{}{
 			"NewSite":             {uint(0), dummyError},
@@ -54,6 +55,7 @@ func TestSet(t *testing.T) {
 			"GetThemes":           {"", dummyError},
 			"UpdateSiteTheme":     {dummyError},
 			"PostAbout":           {dummyError},
+			"GetAbout":            {"", dummyError},
 		}},
 	}
 
@@ -70,6 +72,7 @@ func TestSet(t *testing.T) {
 			mockSvc.EXPECT().GetThemes(gomock.Any(), gomock.Any()).Return(tt.rets["GetThemes"]...).Times(times)
 			mockSvc.EXPECT().UpdateSiteTheme(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["UpdateSiteTheme"]...).Times(times)
 			mockSvc.EXPECT().PostAbout(gomock.Any(), gomock.Any(), gomock.Any()).Return(tt.rets["PostAbout"]...).Times(times)
+			mockSvc.EXPECT().GetAbout(gomock.Any(), gomock.Any()).Return(tt.rets["GetAbout"]...).Times(times)
 
 			t.Run("NewSite", func(t *testing.T) {
 				sitename := "sitename"
@@ -147,6 +150,14 @@ func TestSet(t *testing.T) {
 					t.Fatal("\nsetErr: ", setErr, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("GetAbout", func(t *testing.T) {
+				siteID := uint(1)
+				setOutput, setErr := endpoints.GetAbout(ctx, siteID)
+				svcOutput, svcErr := mockSvc.GetAbout(ctx, siteID)
+				if setErr != svcErr {
+					t.Fatal("\nsetOutput: ", setOutput, "\nsetErr: ", setErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 }
@@ -170,6 +181,7 @@ func TestSetBadEndpoint(t *testing.T) {
 		GetThemesEndpoint:           makeBadEndpoint(endpoint.GetThemesResponse{Err: errors.New("dummy error")}),
 		UpdateSiteThemeEndpoint:     makeBadEndpoint(endpoint.UpdateSiteThemeResponse{Err: errors.New("dummy error")}),
 		PostAboutEndpoint:           makeBadEndpoint(endpoint.PostAboutResponse{Err: errors.New("dummy error")}),
+		GetAboutEndpoint:            makeBadEndpoint(endpoint.GetAboutResponse{Err: errors.New("dummy error")}),
 	}
 
 	expectedMsg := "dummy error"
@@ -198,6 +210,9 @@ func TestSetBadEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := endpoints.PostAbout(context.Background(), 1, "theme"); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := endpoints.GetAbout(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 }

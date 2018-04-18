@@ -114,3 +114,14 @@ func (mwt loggingMiddlewareTest) TestUpdateAbout(t *testing.T) {
 		t.Fatal("UpdateAbout log mismatches\n", "want:\n", want, "get\n", get)
 	}
 }
+
+func (mwt loggingMiddlewareTest) TestReadAbout(t *testing.T) {
+	mwt.next.TestReadAbout(t)
+	want := "method=ReadAbout siteID=0 err=\"invalid siteID\"\n" +
+		"method=ReadAbout siteID=1 err=null\n"
+	get := mwt.buffer.String()
+	mwt.buffer.Reset()
+	if want != get {
+		t.Fatal("ReadAbout log mismatches\n", "want:\n", want, "get\n", get)
+	}
+}

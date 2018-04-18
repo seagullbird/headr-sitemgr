@@ -85,6 +85,19 @@ func TestIntegration(t *testing.T) {
 	if _, err := os.Stat(service.PostPath(siteID, filename)); !os.IsNotExist(err) {
 		t.Fatal(err)
 	}
+	// UpdateAbout
+	about := "about"
+	if err := client.UpdateAbout(ctx, siteID, about); err != nil {
+		t.Fatal(err)
+	}
+	// ReadAbout
+	readAbout, err := client.ReadAbout(ctx, siteID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if readAbout != about {
+		t.Fatal(errors.New("ReadAbout inconsistent with UpdateAbout"))
+	}
 	// DeleteSite
 	if err := client.DeleteSite(ctx, siteID); err != nil {
 		t.Fatal(err)

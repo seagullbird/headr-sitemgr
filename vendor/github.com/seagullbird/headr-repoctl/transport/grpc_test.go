@@ -53,6 +53,7 @@ func TestGRPCApplication(t *testing.T) {
 			"WriteConfig": {nil},
 			"ReadConfig":  {"string", nil},
 			"UpdateAbout": {nil},
+			"ReadAbout":   {"string", nil},
 		},
 		{
 			"NewSite":     {dummyError},
@@ -63,6 +64,7 @@ func TestGRPCApplication(t *testing.T) {
 			"WriteConfig": {dummyError},
 			"ReadConfig":  {"", dummyError},
 			"UpdateAbout": {dummyError},
+			"ReadAbout":   {"", dummyError},
 		},
 	} {
 		times := 2
@@ -74,6 +76,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().WriteConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["WriteConfig"]...).Times(times)
 		mockSvc.EXPECT().ReadConfig(gomock.Any(), gomock.Any()).Return(rets["ReadConfig"]...).Times(times)
 		mockSvc.EXPECT().UpdateAbout(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateAbout"]...).Times(times)
+		mockSvc.EXPECT().ReadAbout(gomock.Any(), gomock.Any()).Return(rets["ReadAbout"]...).Times(times)
 	}
 	// Start GRPC server with the mock service
 	logger := log.NewNopLogger()
@@ -196,6 +199,15 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("ReadAbout", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				clientOutput, clientErr := client.ReadAbout(ctx, siteID)
+				svcOutput, svcErr := mockSvc.ReadAbout(ctx, siteID)
+				if clientOutput != svcOutput || !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 
@@ -221,6 +233,7 @@ func TestGRPCTransport(t *testing.T) {
 		WriteConfigEndpoint: makeBadEndpoint(),
 		ReadConfigEndpoint:  makeBadEndpoint(),
 		UpdateAboutEndpoint: makeBadEndpoint(),
+		ReadAboutEndpoint:   makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -255,6 +268,9 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := client.UpdateAbout(context.Background(), 1, ""); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := client.ReadAbout(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

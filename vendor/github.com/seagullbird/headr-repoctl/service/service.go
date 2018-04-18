@@ -26,6 +26,7 @@ type Service interface {
 	WriteConfig(ctx context.Context, siteID uint, config string) error
 	ReadConfig(ctx context.Context, siteID uint) (string, error)
 	UpdateAbout(ctx context.Context, siteID uint, content string) error
+	ReadAbout(ctx context.Context, siteID uint) (string, error)
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -208,6 +209,26 @@ func (s basicService) UpdateAbout(ctx context.Context, siteID uint, content stri
 		ReceivedOn: time.Now().Unix(),
 	}
 	return s.dispatcher.DispatchMessage("re_generate", evt)
+}
+
+func (s basicService) ReadAbout(ctx context.Context, siteID uint) (string, error) {
+	if siteID <= 0 {
+		return "", ErrInvalidSiteID
+	}
+
+	sitePath := SitePath(siteID)
+	aboutPath := filepath.Join(sitePath, "source", "content", "about", "_index.md")
+	if _, err := os.Stat(aboutPath); err != nil {
+		if os.IsNotExist(err) {
+			return "", ErrPathNotExist
+		}
+		return "", ErrUnexpected
+	}
+	contentRaw, err := ioutil.ReadFile(aboutPath)
+	if err != nil {
+		return "", ErrUnexpected
+	}
+	return string(contentRaw), nil
 }
 
 // SitePath is the root directory of a site. Typically has a public as well as a source sub-directory.

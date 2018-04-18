@@ -12,6 +12,7 @@ service Repoctl {
     rpc WriteConfig (WriteConfigRequest) returns (WriteConfigReply) {}
     rpc ReadConfig (ReadConfigRequest) returns (ReadConfigReply) {}
     rpc UpdateAbout (UpdateAboutRequest) returns (UpdateAboutReply) {}
+    rpc ReadAbout (ReadAboutRequest) returns (ReadAboutReply) {}
 }
 
 message NewSiteRequest {
@@ -85,4 +86,13 @@ message UpdateAboutRequest {
 
 message UpdateAboutReply {
     string err = 1;
+}
+
+message ReadAboutRequest {
+    uint64 site_id = 1;
+}
+
+message ReadAboutReply {
+    string content = 1;
+    string err = 2;
 }

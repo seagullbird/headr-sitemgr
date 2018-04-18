@@ -49,6 +49,7 @@ func TestGRPCApplication(t *testing.T) {
 			"GetThemes":           {"themes", nil},
 			"UpdateSiteTheme":     {nil},
 			"PostAbout":           {nil},
+			"GetAbout":            {"content", nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
@@ -60,6 +61,7 @@ func TestGRPCApplication(t *testing.T) {
 			"GetThemes":           {"", dummyError},
 			"UpdateSiteTheme":     {dummyError},
 			"PostAbout":           {dummyError},
+			"GetAbout":            {"", dummyError},
 		},
 	} {
 		times := 2
@@ -72,6 +74,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().GetThemes(gomock.Any(), gomock.Any()).Return(rets["GetThemes"]...).Times(times)
 		mockSvc.EXPECT().UpdateSiteTheme(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateSiteTheme"]...).Times(times)
 		mockSvc.EXPECT().PostAbout(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["PostAbout"]...).Times(times)
+		mockSvc.EXPECT().GetAbout(gomock.Any(), gomock.Any()).Return(rets["GetAbout"]...).Times(times)
 	}
 
 	// Start GRPC server with the mock service
@@ -195,6 +198,14 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("GetAbout", func(t *testing.T) {
+				siteID := uint(1)
+				clientOutput, clientErr := client.GetAbout(ctx, siteID)
+				svcOutput, svcErr := mockSvc.GetAbout(ctx, siteID)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 
@@ -218,6 +229,7 @@ func TestGRPCTransport(t *testing.T) {
 		GetThemesEndpoint:           makeBadEndpoint(),
 		UpdateSiteThemeEndpoint:     makeBadEndpoint(),
 		PostAboutEndpoint:           makeBadEndpoint(),
+		GetAboutEndpoint:            makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -255,6 +267,9 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := client.PostAbout(context.Background(), 1, "content"); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if _, err := client.GetAbout(context.Background(), 1); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

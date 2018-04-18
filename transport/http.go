@@ -43,6 +43,7 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	// GET 		/sites/themes/?site_id=:siteID	get all themes
 	// PATCH    /sites/:id						partially update a site (only theme)
 	// PUT      /sites/about/:id			    update one's about page
+	// GET      /sites/about/:id 				get one's about page
 
 	r.Methods("POST").Path("/sites/").Handler(httptransport.NewServer(
 		endpoints.NewSiteEndpoint,
@@ -95,6 +96,12 @@ func NewHTTPHandler(endpoints endpoint.Set, logger log.Logger) http.Handler {
 	r.Methods("PUT").Path("/sites/about/{id}").Handler(httptransport.NewServer(
 		endpoints.PostAboutEndpoint,
 		decodeHTTPPostAboutRequest,
+		encodeHTTPGenericResponse,
+		options...,
+	))
+	r.Methods("GET").Path("/sites/about/{id}").Handler(httptransport.NewServer(
+		endpoints.GetAboutEndpoint,
+		decodeHTTPGetAboutRequest,
 		encodeHTTPGenericResponse,
 		options...,
 	))
@@ -237,4 +244,17 @@ func decodeHTTPPostAboutRequest(_ context.Context, r *http.Request) (interface{}
 		return nil, ErrBadRouting
 	}
 	return endpoint.PostAboutRequest{SiteID: uint(i), Content: payload.Content}, nil
+}
+
+func decodeHTTPGetAboutRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, ErrBadRouting
+	}
+	i, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, ErrBadRouting
+	}
+	return endpoint.GetAboutRequest{SiteID: uint(i)}, nil
 }

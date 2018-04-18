@@ -39,6 +39,7 @@ func TestHTTPForbidden(t *testing.T) {
 		{"GetThemesBadRouting", "/sites/themes/?aaa=1", "GET", "", http.StatusBadRequest},
 		{"UpdateSiteThemeBadRouting", "/sites/a", "PATCH", "{\"theme\": \"theme\"}", http.StatusBadRequest},
 		{"PostAboutBadRouting", "/sites/about/a", "PUT", "{\"content\": \"content\"}", http.StatusBadRequest},
+		{"GetAboutBadRouting", "/sites/about/a", "GET", "", http.StatusBadRequest},
 
 		{"NewSite", "/sites/", "POST", "{\"sitename\": \"sitename\"}", http.StatusForbidden},
 		{"DeleteSite", "/sites/1", "DELETE", "", http.StatusForbidden},
@@ -49,6 +50,7 @@ func TestHTTPForbidden(t *testing.T) {
 		{"GetThemes", "/sites/themes/?site_id=1", "GET", "", http.StatusForbidden},
 		{"UpdateSiteTheme", "/sites/1", "PATCH", "{\"theme\": \"theme\"}", http.StatusForbidden},
 		{"PostAbout", "/sites/about/1", "PUT", "{\"content\": \"content\"}", http.StatusForbidden},
+		{"GetAbout", "/sites/about/1", "GET", "", http.StatusForbidden},
 	}
 
 	for _, tt := range tests {
@@ -89,6 +91,7 @@ func TestHTTP(t *testing.T) {
 			"GetThemes":           {"themes", nil},
 			"UpdateSiteTheme":     {nil},
 			"PostAbout":           {nil},
+			"GetAbout":            {"content", nil},
 		},
 		{
 			"NewSite":             {uint(0), dummyError},
@@ -100,6 +103,7 @@ func TestHTTP(t *testing.T) {
 			"GetThemes":           {"", dummyError},
 			"UpdateSiteTheme":     {dummyError},
 			"PostAbout":           {dummyError},
+			"GetAbout":            {"", dummyError},
 		},
 	} {
 		times := 1
@@ -112,6 +116,7 @@ func TestHTTP(t *testing.T) {
 		mockSvc.EXPECT().GetThemes(gomock.Any(), gomock.Any()).Return(rets["GetThemes"]...).Times(times)
 		mockSvc.EXPECT().UpdateSiteTheme(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateSiteTheme"]...).Times(times)
 		mockSvc.EXPECT().PostAbout(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["PostAbout"]...).Times(times)
+		mockSvc.EXPECT().GetAbout(gomock.Any(), gomock.Any()).Return(rets["GetAbout"]...).Times(times)
 	}
 
 	logger := log.NewNopLogger()
@@ -141,6 +146,7 @@ func TestHTTP(t *testing.T) {
 			{"GetThemes", "/sites/themes/?site_id=1", "GET", "", http.StatusOK, "{\"themes\":\"themes\"}"},
 			{"UpdateSiteTheme", "/sites/1", "PATCH", "{\"theme\": \"theme\"}", http.StatusOK, "{}"},
 			{"PostAbout", "/sites/about/1", "PUT", "{\"content\": \"content\"}", http.StatusOK, "{}"},
+			{"GetAbout", "/sites/about/1", "GET", "", http.StatusOK, "{\"content\":\"content\"}"},
 		},
 		"Dummy Error": {
 			{"NewSite", "/sites/", "POST", "{\"sitename\": \"sitename\"}", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
@@ -152,6 +158,7 @@ func TestHTTP(t *testing.T) {
 			{"GetThemes", "/sites/themes/?site_id=1", "GET", "", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 			{"UpdateSiteTheme", "/sites/1", "PATCH", "{\"theme\": \"theme\"}", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 			{"PostAbout", "/sites/about/1", "PUT", "{\"content\": \"content\"}", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
+			{"GetAbout", "/sites/about/1", "GET", "", http.StatusInternalServerError, "{\"error\":\"dummy error\"}"},
 		},
 	}
 

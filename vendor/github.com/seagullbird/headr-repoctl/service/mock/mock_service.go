@@ -57,6 +57,19 @@ func (mr *MockServiceMockRecorder) NewSite(arg0, arg1, arg2 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewSite", reflect.TypeOf((*MockService)(nil).NewSite), arg0, arg1, arg2)
 }
 
+// ReadAbout mocks base method
+func (m *MockService) ReadAbout(arg0 context.Context, arg1 uint) (string, error) {
+	ret := m.ctrl.Call(m, "ReadAbout", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadAbout indicates an expected call of ReadAbout
+func (mr *MockServiceMockRecorder) ReadAbout(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAbout", reflect.TypeOf((*MockService)(nil).ReadAbout), arg0, arg1)
+}
+
 // ReadConfig mocks base method
 func (m *MockService) ReadConfig(arg0 context.Context, arg1 uint) (string, error) {
 	ret := m.ctrl.Call(m, "ReadConfig", arg0, arg1)

@@ -19,6 +19,7 @@ type Set struct {
 	WriteConfigEndpoint endpoint.Endpoint
 	ReadConfigEndpoint  endpoint.Endpoint
 	UpdateAboutEndpoint endpoint.Endpoint
+	ReadAboutEndpoint   endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server, and wires in all of the
@@ -33,6 +34,7 @@ func New(svc service.Service, logger log.Logger) Set {
 		WriteConfigEndpoint: Middlewares(MakeWriteConfigEndpoint(svc), logger),
 		ReadConfigEndpoint:  Middlewares(MakeReadConfigEndpoint(svc), logger),
 		UpdateAboutEndpoint: Middlewares(MakeUpdateAboutEndpoint(svc), logger),
+		ReadAboutEndpoint:   Middlewares(MakeReadAboutEndpoint(svc), logger),
 	}
 }
 
@@ -142,6 +144,19 @@ func (s Set) UpdateAbout(ctx context.Context, siteID uint, content string) error
 	return response.Err
 }
 
+// ReadAbout implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) ReadAbout(ctx context.Context, siteID uint) (string, error) {
+	resp, err := s.ReadAboutEndpoint(ctx, ReadAboutRequest{
+		SiteID: siteID,
+	})
+	if err != nil {
+		return "", err
+	}
+	response := resp.(ReadAboutResponse)
+	return response.Content, response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -211,5 +226,14 @@ func MakeUpdateAboutEndpoint(svc service.Service) endpoint.Endpoint {
 		req := request.(UpdateAboutRequest)
 		err = svc.UpdateAbout(ctx, req.SiteID, req.Content)
 		return UpdateAboutResponse{Err: err}, nil
+	}
+}
+
+// MakeReadAboutEndpoint constructs a ReadAbout endpoint wrapping the service.
+func MakeReadAboutEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(ReadAboutRequest)
+		content, err := svc.ReadAbout(ctx, req.SiteID)
+		return ReadAboutResponse{Content: content, Err: err}, nil
 	}
 }

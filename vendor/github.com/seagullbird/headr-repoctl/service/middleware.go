@@ -71,3 +71,9 @@ func (mw loggingMiddleware) UpdateAbout(ctx context.Context, siteID uint, conten
 	mw.logger.Log("method", "UpdateAbout", "siteID", siteID, "err", err)
 	return err
 }
+
+func (mw loggingMiddleware) ReadAbout(ctx context.Context, siteID uint) (string, error) {
+	content, err := mw.next.ReadAbout(ctx, siteID)
+	mw.logger.Log("method", "ReadAbout", "siteID", siteID, "err", err)
+	return content, err
+}

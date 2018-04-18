@@ -234,6 +234,34 @@ func decodeGRPCUpdateAboutResponse(_ context.Context, grpcReply interface{}) (in
 	return endpoint.UpdateAboutResponse{Err: str2err(reply.Err)}, nil
 }
 
+// ReadAbout
+func encodeGRPCReadAboutRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(endpoint.ReadAboutRequest)
+	return &pb.ReadAboutRequest{
+		SiteId: uint64(req.SiteID),
+	}, nil
+}
+
+func decodeGRPCReadAboutRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ReadAboutRequest)
+	return endpoint.ReadAboutRequest{
+		SiteID: uint(req.SiteId),
+	}, nil
+}
+
+func encodeGRPCReadAboutResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(endpoint.ReadAboutResponse)
+	return &pb.ReadAboutReply{
+		Content: resp.Content,
+		Err:     err2str(resp.Err),
+	}, nil
+}
+
+func decodeGRPCReadAboutResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ReadAboutReply)
+	return endpoint.ReadAboutResponse{Content: reply.Content, Err: str2err(reply.Err)}, nil
+}
+
 func err2str(err error) string {
 	if err == nil {
 		return ""
