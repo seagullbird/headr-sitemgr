@@ -218,5 +218,12 @@ func (s basicService) PostAbout(ctx context.Context, siteID uint, content string
 		return ErrSiteNotFound
 	}
 
+	// Add front matter
+	fm := "---\n" +
+		"title: \"About\"\n" +
+		"hidden: true\n" +
+		"---\n\n"
+	content = fm + content
+
 	return s.repoctlsvc.UpdateAbout(ctx, siteID, content)
 }
