@@ -25,6 +25,7 @@ type Service interface {
 	ReadPost(ctx context.Context, siteID uint, filename string) (content string, err error)
 	WriteConfig(ctx context.Context, siteID uint, config string) error
 	ReadConfig(ctx context.Context, siteID uint) (string, error)
+	UpdateAbout(ctx context.Context, siteID uint, content string) error
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -160,7 +161,16 @@ func (s basicService) WriteConfig(ctx context.Context, siteID uint, config strin
 
 	sitePath := SitePath(siteID)
 	configFilePath := filepath.Join(sitePath, "source", "config.json")
-	return ioutil.WriteFile(configFilePath, []byte(config), 0644)
+	err := ioutil.WriteFile(configFilePath, []byte(config), 0644)
+	if err != nil {
+		return err
+	}
+	// Generate site
+	evt := mq.SiteUpdatedEvent{
+		SiteID:     siteID,
+		ReceivedOn: time.Now().Unix(),
+	}
+	return s.dispatcher.DispatchMessage("re_generate", evt)
 }
 
 func (s basicService) ReadConfig(ctx context.Context, siteID uint) (string, error) {
@@ -172,6 +182,32 @@ func (s basicService) ReadConfig(ctx context.Context, siteID uint) (string, erro
 	configFilePath := filepath.Join(sitePath, "source", "config.json")
 	configRaw, err := ioutil.ReadFile(configFilePath)
 	return string(configRaw), err
+}
+
+func (s basicService) UpdateAbout(ctx context.Context, siteID uint, content string) error {
+	if siteID <= 0 {
+		return ErrInvalidSiteID
+	}
+
+	sitePath := SitePath(siteID)
+	aboutDir := filepath.Join(sitePath, "source", "content", "about")
+	if _, err := os.Stat(aboutDir); err != nil {
+		if os.IsNotExist(err) {
+			os.MkdirAll(aboutDir, 0644)
+		} else {
+			return err
+		}
+	}
+	aboutPath := filepath.Join(aboutDir, "_index.md")
+	if err := ioutil.WriteFile(aboutPath, []byte(content), 0644); err != nil {
+		return err
+	}
+	// Generate site
+	evt := mq.SiteUpdatedEvent{
+		SiteID:     siteID,
+		ReceivedOn: time.Now().Unix(),
+	}
+	return s.dispatcher.DispatchMessage("re_generate", evt)
 }
 
 // SitePath is the root directory of a site. Typically has a public as well as a source sub-directory.

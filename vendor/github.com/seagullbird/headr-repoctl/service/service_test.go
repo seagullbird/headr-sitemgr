@@ -18,7 +18,7 @@ func TestService(t *testing.T) {
 	mockctrl := gomock.NewController(t)
 	defer mockctrl.Finish()
 	mockDispatcher := mqdispatchmock.NewMockDispatcher(mockctrl)
-	mockDispatcher.EXPECT().DispatchMessage(gomock.Any(), gomock.Any()).Return(nil).Times(3)
+	mockDispatcher.EXPECT().DispatchMessage(gomock.Any(), gomock.Any()).Return(nil).Times(5)
 
 	var buf bytes.Buffer
 	logger := log.NewLogfmtLogger(&buf)
@@ -37,6 +37,7 @@ type ServiceTest interface {
 	TestReadPost(t *testing.T)
 	TestWriteConfig(t *testing.T)
 	TestReadConfig(t *testing.T)
+	TestUpdateAbout(t *testing.T)
 }
 
 // New wires up all ServiceTest middlewares and returns a ServiceTest instance.
@@ -69,6 +70,7 @@ func RunTests(t *testing.T, svctest ServiceTest) {
 	t.Run("ReadPost", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadPost) })
 	t.Run("WriteConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestWriteConfig) })
 	t.Run("ReadConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadConfig) })
+	t.Run("UpdateAbout", func(t *testing.T) { clearEnvWrapper(t, svctest.TestUpdateAbout) })
 }
 
 func clearEnvWrapper(t *testing.T, tester func(t *testing.T)) {
@@ -155,7 +157,7 @@ func (s basicServiceTest) TestWritePost(t *testing.T) {
 				t.Fatalf("siteID=%d, filename=%s, config=%s", tt.siteID, tt.filename, tt.content)
 			}
 			if output == nil {
-				// make sure the file is there and its config
+				// make sure the file is there and its content
 				postpath := service.PostPath(1, "test-post.md")
 				if _, err := os.Stat(postpath); os.IsNotExist(err) {
 					t.Fatalf("write post failed, post path does not exist: %v", err)
@@ -165,7 +167,7 @@ func (s basicServiceTest) TestWritePost(t *testing.T) {
 					t.Fatalf("Cannot read post: %v", err)
 				}
 				if string(raw) != "This is a test file" {
-					t.Fatalf("write post failed, wrong post config")
+					t.Fatalf("write post failed, wrong post content")
 				}
 			}
 		})
@@ -309,6 +311,42 @@ func (s basicServiceTest) TestReadConfig(t *testing.T) {
 			}
 			if outputError == nil && outputContent != tt.expectedContent {
 				t.Fatalf("siteID=%d, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, outputContent, tt.expectedContent, tt.expectedError)
+			}
+		})
+	}
+}
+
+func (s basicServiceTest) TestUpdateAbout(t *testing.T) {
+	tests := []struct {
+		name     string
+		siteID   uint
+		content  string
+		expected error
+	}{
+		{"Invalid SiteID 0", 0, "", service.ErrInvalidSiteID},
+		{"Normal Functioning", 1, "This is an about file", nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := s.svc.UpdateAbout(context.Background(), tt.siteID, tt.content)
+			if output != tt.expected {
+				t.Fatalf("siteID=%d, filename=%s, config=%s", tt.siteID, tt.content)
+			}
+			if output == nil {
+				// make sure the file is there and its content
+				sitePath := service.SitePath(tt.siteID)
+				aboutPath := filepath.Join(sitePath, "source", "content", "about", "_index.md")
+				if _, err := os.Stat(aboutPath); os.IsNotExist(err) {
+					t.Fatalf("write post failed, post path does not exist: %v", err)
+				}
+				raw, err := ioutil.ReadFile(aboutPath)
+				if err != nil {
+					t.Fatalf("Cannot read about: %v", err)
+				}
+				if string(raw) != "This is an about file" {
+					t.Fatalf("update about failed, wrong about content")
+				}
 			}
 		})
 	}

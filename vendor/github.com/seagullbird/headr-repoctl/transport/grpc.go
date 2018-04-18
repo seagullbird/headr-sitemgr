@@ -19,6 +19,7 @@ type grpcServer struct {
 	readpost    grpctransport.Handler
 	writeconfig grpctransport.Handler
 	readconfig  grpctransport.Handler
+	updateabout grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC RepoctlServer.
@@ -67,6 +68,12 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.RepoctlServer {
 			endpoints.ReadConfigEndpoint,
 			decodeGRPCReadConfigRequest,
 			encodeGRPCReadConfigResponse,
+			options...,
+		),
+		updateabout: grpctransport.NewServer(
+			endpoints.UpdateAboutEndpoint,
+			decodeGRPCUpdateAboutRequest,
+			encodeGRPCUpdateAboutResponse,
 			options...,
 		),
 	}
@@ -153,6 +160,17 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			pb.ReadConfigReply{},
 		).Endpoint()
 	}
+	var updateaboutEndpoint kitendpoint.Endpoint
+	{
+		updateaboutEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Repoctl",
+			"UpdateAbout",
+			encodeGRPCUpdateAboutRequest,
+			decodeGRPCUpdateAboutResponse,
+			pb.UpdateAboutReply{},
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
@@ -164,6 +182,7 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 		ReadPostEndpoint:    readpostEndpoint,
 		WriteConfigEndpoint: writeconfigEndpoint,
 		ReadConfigEndpoint:  readconfigEndpoint,
+		UpdateAboutEndpoint: updateaboutEndpoint,
 	}
 }
 
@@ -221,4 +240,12 @@ func (s *grpcServer) ReadConfig(ctx context.Context, req *pb.ReadConfigRequest) 
 		return nil, err
 	}
 	return rep.(*pb.ReadConfigReply), nil
+}
+
+func (s *grpcServer) UpdateAbout(ctx context.Context, req *pb.UpdateAboutRequest) (*pb.UpdateAboutReply, error) {
+	_, rep, err := s.updateabout.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UpdateAboutReply), nil
 }

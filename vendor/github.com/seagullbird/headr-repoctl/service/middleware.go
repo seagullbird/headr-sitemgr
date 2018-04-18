@@ -56,12 +56,18 @@ func (mw loggingMiddleware) ReadPost(ctx context.Context, siteID uint, filename 
 
 func (mw loggingMiddleware) WriteConfig(ctx context.Context, siteID uint, config string) error {
 	err := mw.next.WriteConfig(ctx, siteID, config)
-	mw.logger.Log("method", "WriteConfig", "siteID", siteID)
+	mw.logger.Log("method", "WriteConfig", "siteID", siteID, "err", err)
 	return err
 }
 
 func (mw loggingMiddleware) ReadConfig(ctx context.Context, siteID uint) (string, error) {
 	config, err := mw.next.ReadConfig(ctx, siteID)
-	mw.logger.Log("method", "ReadConfig", "siteID", siteID)
+	mw.logger.Log("method", "ReadConfig", "siteID", siteID, "err", err)
 	return config, err
+}
+
+func (mw loggingMiddleware) UpdateAbout(ctx context.Context, siteID uint, content string) error {
+	err := mw.next.UpdateAbout(ctx, siteID, content)
+	mw.logger.Log("method", "UpdateAbout", "siteID", siteID, "err", err)
+	return err
 }

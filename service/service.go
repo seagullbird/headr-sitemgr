@@ -27,6 +27,7 @@ type Service interface {
 	UpdateConfig(ctx context.Context, siteID uint, config string) error
 	GetThemes(ctx context.Context, siteID uint) (string, error)
 	UpdateSiteTheme(ctx context.Context, siteID uint, theme string) error
+	PostAbout(ctx context.Context, siteID uint, content string) error
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -208,4 +209,14 @@ func (s basicService) UpdateSiteTheme(ctx context.Context, siteID uint, theme st
 	newConfigRaw, err := json.Marshal(configMap)
 
 	return s.repoctlsvc.WriteConfig(ctx, siteID, string(newConfigRaw))
+}
+
+func (s basicService) PostAbout(ctx context.Context, siteID uint, content string) error {
+	userID := ctx.Value(jwt.JWTClaimsContextKey).(stdjwt.MapClaims)["sub"].(string)
+	site, _ := s.store.GetSite(siteID)
+	if site.UserID != userID {
+		return ErrSiteNotFound
+	}
+
+	return s.repoctlsvc.UpdateAbout(ctx, siteID, content)
 }

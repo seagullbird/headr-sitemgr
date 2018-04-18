@@ -85,3 +85,14 @@ type UpdateSiteThemeRequest struct {
 type UpdateSiteThemeResponse struct {
 	Err error `json:"-"`
 }
+
+// PostAboutRequest collects the request parameters for the PostAbout method.
+type PostAboutRequest struct {
+	SiteID  uint   `json:"site_id"`
+	Content string `json:"content"`
+}
+
+// PostAboutResponse collects the response values for the PostAbout method.
+type PostAboutResponse struct {
+	Err error `json:"-"`
+}

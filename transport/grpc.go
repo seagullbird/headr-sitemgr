@@ -22,6 +22,7 @@ type grpcServer struct {
 	updateconfig        grpctransport.Handler
 	getthemes           grpctransport.Handler
 	updatesitetheme     grpctransport.Handler
+	postabout           grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC SitemgrServer.
@@ -77,6 +78,12 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.SitemgrServer {
 			endpoints.UpdateSiteThemeEndpoint,
 			decodeGRPCUpdateSiteThemeRequest,
 			encodeGRPCUpdateSiteThemeResponse,
+			options...,
+		),
+		postabout: grpctransport.NewServer(
+			endpoints.PostAboutEndpoint,
+			decodeGRPCPostAboutRequest,
+			encodeGRPCPostAboutResponse,
 			options...,
 		),
 	}
@@ -185,6 +192,18 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			options...,
 		).Endpoint()
 	}
+	var postaboutEndpoint kitendpoint.Endpoint
+	{
+		postaboutEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Sitemgr",
+			"PostAbout",
+			encodeGRPCPostAboutRequest,
+			decodeGRPCPostAboutResponse,
+			pb.PostAboutReply{},
+			options...,
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
@@ -197,6 +216,7 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 		UpdateConfigEndpoint:        updateconfigEndpoint,
 		GetThemesEndpoint:           getthemesEndpoint,
 		UpdateSiteThemeEndpoint:     updatesitethemeEndpoint,
+		PostAboutEndpoint:           postaboutEndpoint,
 	}
 }
 
@@ -262,6 +282,14 @@ func (s *grpcServer) UpdateSiteTheme(ctx context.Context, req *pb.UpdateSiteThem
 		return nil, err
 	}
 	return rep.(*pb.UpdateSiteThemeReply), nil
+}
+
+func (s *grpcServer) PostAbout(ctx context.Context, req *pb.PostAboutRequest) (*pb.PostAboutReply, error) {
+	_, rep, err := s.postabout.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.PostAboutReply), nil
 }
 
 // NewSite
@@ -465,6 +493,32 @@ func encodeGRPCUpdateSiteThemeResponse(_ context.Context, response interface{}) 
 func decodeGRPCUpdateSiteThemeResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.UpdateSiteThemeReply)
 	return endpoint.UpdateSiteThemeResponse{Err: str2err(reply.Err)}, nil
+}
+
+// PostAbout
+func encodeGRPCPostAboutRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(endpoint.PostAboutRequest)
+	return &pb.PostAboutRequest{SiteId: uint64(req.SiteID), Content: req.Content}, nil
+}
+
+func decodeGRPCPostAboutRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PostAboutRequest)
+	return endpoint.PostAboutRequest{
+		SiteID:  uint(req.SiteId),
+		Content: req.Content,
+	}, nil
+}
+
+func encodeGRPCPostAboutResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(endpoint.PostAboutResponse)
+	return &pb.PostAboutReply{
+		Err: err2str(resp.Err),
+	}, nil
+}
+
+func decodeGRPCPostAboutResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.PostAboutReply)
+	return endpoint.PostAboutResponse{Err: str2err(reply.Err)}, nil
 }
 
 func err2str(err error) string {

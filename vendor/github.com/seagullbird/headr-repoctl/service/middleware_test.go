@@ -84,8 +84,8 @@ func (mwt loggingMiddlewareTest) TestReadPost(t *testing.T) {
 
 func (mwt loggingMiddlewareTest) TestWriteConfig(t *testing.T) {
 	mwt.next.TestWriteConfig(t)
-	want := "method=WriteConfig siteID=0\n" +
-		"method=WriteConfig siteID=1\n"
+	want := "method=WriteConfig siteID=0 err=\"invalid siteID\"\n" +
+		"method=WriteConfig siteID=1 err=null\n"
 	get := mwt.buffer.String()
 	mwt.buffer.Reset()
 	if want != get {
@@ -95,11 +95,22 @@ func (mwt loggingMiddlewareTest) TestWriteConfig(t *testing.T) {
 
 func (mwt loggingMiddlewareTest) TestReadConfig(t *testing.T) {
 	mwt.next.TestReadConfig(t)
-	want := "method=ReadConfig siteID=0\n" +
-		"method=ReadConfig siteID=1\n"
+	want := "method=ReadConfig siteID=0 err=\"invalid siteID\"\n" +
+		"method=ReadConfig siteID=1 err=null\n"
 	get := mwt.buffer.String()
 	mwt.buffer.Reset()
 	if want != get {
 		t.Fatal("ReadConfig log mismatches\n", "want:\n", want, "get\n", get)
+	}
+}
+
+func (mwt loggingMiddlewareTest) TestUpdateAbout(t *testing.T) {
+	mwt.next.TestUpdateAbout(t)
+	want := "method=UpdateAbout siteID=0 err=\"invalid siteID\"\n" +
+		"method=UpdateAbout siteID=1 err=null\n"
+	get := mwt.buffer.String()
+	mwt.buffer.Reset()
+	if want != get {
+		t.Fatal("UpdateAbout log mismatches\n", "want:\n", want, "get\n", get)
 	}
 }

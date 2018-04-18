@@ -18,6 +18,7 @@ type Set struct {
 	ReadPostEndpoint    endpoint.Endpoint
 	WriteConfigEndpoint endpoint.Endpoint
 	ReadConfigEndpoint  endpoint.Endpoint
+	UpdateAboutEndpoint endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server, and wires in all of the
@@ -31,6 +32,7 @@ func New(svc service.Service, logger log.Logger) Set {
 		ReadPostEndpoint:    Middlewares(MakeReadPostEndpoint(svc), logger),
 		WriteConfigEndpoint: Middlewares(MakeWriteConfigEndpoint(svc), logger),
 		ReadConfigEndpoint:  Middlewares(MakeReadConfigEndpoint(svc), logger),
+		UpdateAboutEndpoint: Middlewares(MakeUpdateAboutEndpoint(svc), logger),
 	}
 }
 
@@ -126,6 +128,20 @@ func (s Set) ReadConfig(ctx context.Context, siteID uint) (string, error) {
 	return response.Config, response.Err
 }
 
+// UpdateAbout implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) UpdateAbout(ctx context.Context, siteID uint, content string) error {
+	resp, err := s.UpdateAboutEndpoint(ctx, UpdateAboutRequest{
+		SiteID:  siteID,
+		Content: content,
+	})
+	if err != nil {
+		return err
+	}
+	response := resp.(UpdateAboutResponse)
+	return response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -186,5 +202,14 @@ func MakeReadConfigEndpoint(svc service.Service) endpoint.Endpoint {
 		req := request.(ReadConfigRequest)
 		config, err := svc.ReadConfig(ctx, req.SiteID)
 		return ReadConfigResponse{Config: config, Err: err}, nil
+	}
+}
+
+// MakeUpdateAboutEndpoint constructs a UpdateAbout endpoint wrapping the service.
+func MakeUpdateAboutEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(UpdateAboutRequest)
+		err = svc.UpdateAbout(ctx, req.SiteID, req.Content)
+		return UpdateAboutResponse{Err: err}, nil
 	}
 }

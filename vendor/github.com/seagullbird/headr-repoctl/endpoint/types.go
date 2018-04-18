@@ -77,3 +77,14 @@ type ReadConfigResponse struct {
 	Config string `json:"config"`
 	Err    error  `json:"-"`
 }
+
+// UpdateAboutRequest collects the request parameters for the UpdateAbout method.
+type UpdateAboutRequest struct {
+	SiteID  uint
+	Content string
+}
+
+// UpdateAboutResponse collects the response values for the UpdateAbout method.
+type UpdateAboutResponse struct {
+	Err error `json:"-"`
+}

@@ -71,3 +71,9 @@ func (mw loggingMiddleware) UpdateSiteTheme(ctx context.Context, siteID uint, th
 	mw.logger.Log("method", "UpdateSiteTheme", "siteID", siteID, "theme", theme, "err", err)
 	return err
 }
+
+func (mw loggingMiddleware) PostAbout(ctx context.Context, siteID uint, content string) error {
+	err := mw.next.PostAbout(ctx, siteID, content)
+	mw.logger.Log("method", "PostAbout", "siteID", siteID, "content", content, "err", err)
+	return err
+}

@@ -20,6 +20,8 @@ func LoggingMiddleware(logger log.Logger) endpoint.Middleware {
 	}
 }
 
+// Middlewares chains all middlewares together, returning the final endpoint.
+// This is just a convenient method that helps in clearing up codes in endpoints.New
 func Middlewares(e endpoint.Endpoint, logger log.Logger) endpoint.Endpoint {
 	chain := endpoint.Chain(LoggingMiddleware(logger))
 	return chain(e)

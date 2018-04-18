@@ -110,6 +110,18 @@ func (mr *MockServiceMockRecorder) NewSite(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewSite", reflect.TypeOf((*MockService)(nil).NewSite), arg0, arg1)
 }
 
+// PostAbout mocks base method
+func (m *MockService) PostAbout(arg0 context.Context, arg1 uint, arg2 string) error {
+	ret := m.ctrl.Call(m, "PostAbout", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PostAbout indicates an expected call of PostAbout
+func (mr *MockServiceMockRecorder) PostAbout(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostAbout", reflect.TypeOf((*MockService)(nil).PostAbout), arg0, arg1, arg2)
+}
+
 // UpdateConfig mocks base method
 func (m *MockService) UpdateConfig(arg0 context.Context, arg1 uint, arg2 string) error {
 	ret := m.ctrl.Call(m, "UpdateConfig", arg0, arg1, arg2)
