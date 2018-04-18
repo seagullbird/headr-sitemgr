@@ -45,26 +45,28 @@ func TestGRPCApplication(t *testing.T) {
 	dummyError := errors.New("dummy error")
 	for _, rets := range []map[string][]interface{}{
 		{
-			"NewSite":     {nil},
-			"DeleteSite":  {nil},
-			"WritePost":   {nil},
-			"RemovePost":  {nil},
-			"ReadPost":    {"string", nil},
-			"WriteConfig": {nil},
-			"ReadConfig":  {"string", nil},
-			"UpdateAbout": {nil},
-			"ReadAbout":   {"string", nil},
+			"NewSite":             {nil},
+			"DeleteSite":          {nil},
+			"WritePost":           {nil},
+			"RemovePost":          {nil},
+			"ReadPost":            {"string", nil},
+			"WriteConfig":         {nil},
+			"ReadConfig":          {"string", nil},
+			"UpdateAbout":         {nil},
+			"ReadAbout":           {"string", nil},
+			"ChangeDefaultConfig": {nil},
 		},
 		{
-			"NewSite":     {dummyError},
-			"DeleteSite":  {dummyError},
-			"WritePost":   {dummyError},
-			"RemovePost":  {dummyError},
-			"ReadPost":    {"", dummyError},
-			"WriteConfig": {dummyError},
-			"ReadConfig":  {"", dummyError},
-			"UpdateAbout": {dummyError},
-			"ReadAbout":   {"", dummyError},
+			"NewSite":             {dummyError},
+			"DeleteSite":          {dummyError},
+			"WritePost":           {dummyError},
+			"RemovePost":          {dummyError},
+			"ReadPost":            {"", dummyError},
+			"WriteConfig":         {dummyError},
+			"ReadConfig":          {"", dummyError},
+			"UpdateAbout":         {dummyError},
+			"ReadAbout":           {"", dummyError},
+			"ChangeDefaultConfig": {dummyError},
 		},
 	} {
 		times := 2
@@ -77,6 +79,7 @@ func TestGRPCApplication(t *testing.T) {
 		mockSvc.EXPECT().ReadConfig(gomock.Any(), gomock.Any()).Return(rets["ReadConfig"]...).Times(times)
 		mockSvc.EXPECT().UpdateAbout(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["UpdateAbout"]...).Times(times)
 		mockSvc.EXPECT().ReadAbout(gomock.Any(), gomock.Any()).Return(rets["ReadAbout"]...).Times(times)
+		mockSvc.EXPECT().ChangeDefaultConfig(gomock.Any(), gomock.Any(), gomock.Any()).Return(rets["ChangeDefaultConfig"]...).Times(times)
 	}
 	// Start GRPC server with the mock service
 	logger := log.NewNopLogger()
@@ -208,6 +211,16 @@ func TestGRPCApplication(t *testing.T) {
 					t.Fatal("\nclientOutput: ", clientOutput, "\nclientErr: ", clientErr, "\nsvcOutput: ", svcOutput, "\nsvcErr: ", svcErr)
 				}
 			})
+			t.Run("ChangeDefaultConfig", func(t *testing.T) {
+				ctx := context.Background()
+				siteID := uint(1)
+				theme := "theme"
+				clientErr := client.ChangeDefaultConfig(ctx, siteID, theme)
+				svcErr := mockSvc.ChangeDefaultConfig(ctx, siteID, theme)
+				if !tt.judger(clientErr, svcErr) {
+					t.Fatal("\nclientErr: ", clientErr, "\nsvcErr: ", svcErr)
+				}
+			})
 		})
 	}
 
@@ -225,15 +238,16 @@ func TestGRPCTransport(t *testing.T) {
 	}
 
 	endpoints := endpoint.Set{
-		NewSiteEndpoint:     makeBadEndpoint(),
-		DeleteSiteEndpoint:  makeBadEndpoint(),
-		WritePostEndpoint:   makeBadEndpoint(),
-		RemovePostEndpoint:  makeBadEndpoint(),
-		ReadPostEndpoint:    makeBadEndpoint(),
-		WriteConfigEndpoint: makeBadEndpoint(),
-		ReadConfigEndpoint:  makeBadEndpoint(),
-		UpdateAboutEndpoint: makeBadEndpoint(),
-		ReadAboutEndpoint:   makeBadEndpoint(),
+		NewSiteEndpoint:             makeBadEndpoint(),
+		DeleteSiteEndpoint:          makeBadEndpoint(),
+		WritePostEndpoint:           makeBadEndpoint(),
+		RemovePostEndpoint:          makeBadEndpoint(),
+		ReadPostEndpoint:            makeBadEndpoint(),
+		WriteConfigEndpoint:         makeBadEndpoint(),
+		ReadConfigEndpoint:          makeBadEndpoint(),
+		UpdateAboutEndpoint:         makeBadEndpoint(),
+		ReadAboutEndpoint:           makeBadEndpoint(),
+		ChangeDefaultConfigEndpoint: makeBadEndpoint(),
 	}
 	baseServer := grpc.NewServer()
 	go startServer(t, baseServer, endpoints, log.NewNopLogger())
@@ -271,6 +285,9 @@ func TestGRPCTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := client.ReadAbout(context.Background(), 1); err.Error() != expectedMsg {
+		t.Fatal(err)
+	}
+	if err := client.ChangeDefaultConfig(context.Background(), 1, ""); err.Error() != expectedMsg {
 		t.Fatal(err)
 	}
 

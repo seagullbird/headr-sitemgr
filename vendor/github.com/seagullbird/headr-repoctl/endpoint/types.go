@@ -99,3 +99,14 @@ type ReadAboutResponse struct {
 	Content string `json:"content"`
 	Err     error  `json:"-"`
 }
+
+// ChangeDefaultConfigRequest collects the request parameters for the ChangeDefaultConfig method.
+type ChangeDefaultConfigRequest struct {
+	SiteID uint   `json:"site_id"`
+	Theme  string `json:"theme"`
+}
+
+// ChangeDefaultConfigResponse collects the response values for the ChangeDefaultConfig method.
+type ChangeDefaultConfigResponse struct {
+	Err error `json:"-"`
+}

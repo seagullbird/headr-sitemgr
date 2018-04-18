@@ -192,25 +192,7 @@ func (s basicService) UpdateSiteTheme(ctx context.Context, siteID uint, theme st
 		return err
 	}
 
-	// https://stackoverflow.com/questions/11066946/partly-json-unmarshal-into-a-map-in-go?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
-	originConfig, err := s.repoctlsvc.ReadConfig(ctx, siteID)
-	if err != nil {
-		return err
-	}
-
-	var configMap map[string]*json.RawMessage
-	err = json.Unmarshal([]byte(originConfig), &configMap)
-	if err != nil {
-		return err
-	}
-	themeRaw, err := json.Marshal(theme)
-	if err != nil {
-		return err
-	}
-	*configMap["theme"] = themeRaw
-	newConfigRaw, err := json.Marshal(configMap)
-
-	return s.repoctlsvc.WriteConfig(ctx, siteID, string(newConfigRaw))
+	return s.repoctlsvc.ChangeDefaultConfig(ctx, siteID, theme)
 }
 
 func (s basicService) PostAbout(ctx context.Context, siteID uint, content string) error {

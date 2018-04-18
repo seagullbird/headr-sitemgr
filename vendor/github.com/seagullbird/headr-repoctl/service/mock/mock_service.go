@@ -33,6 +33,18 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 	return m.recorder
 }
 
+// ChangeDefaultConfig mocks base method
+func (m *MockService) ChangeDefaultConfig(arg0 context.Context, arg1 uint, arg2 string) error {
+	ret := m.ctrl.Call(m, "ChangeDefaultConfig", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeDefaultConfig indicates an expected call of ChangeDefaultConfig
+func (mr *MockServiceMockRecorder) ChangeDefaultConfig(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeDefaultConfig", reflect.TypeOf((*MockService)(nil).ChangeDefaultConfig), arg0, arg1, arg2)
+}
+
 // DeleteSite mocks base method
 func (m *MockService) DeleteSite(arg0 context.Context, arg1 uint) error {
 	ret := m.ctrl.Call(m, "DeleteSite", arg0, arg1)

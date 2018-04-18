@@ -11,6 +11,7 @@ import (
 	"github.com/seagullbird/headr-repoctl/config"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -27,6 +28,7 @@ type Service interface {
 	ReadConfig(ctx context.Context, siteID uint) (string, error)
 	UpdateAbout(ctx context.Context, siteID uint, content string) error
 	ReadAbout(ctx context.Context, siteID uint) (string, error)
+	ChangeDefaultConfig(ctx context.Context, siteID uint, theme string) error
 }
 
 // New returns a basic Service with all of the expected middlewares wired in.
@@ -229,6 +231,29 @@ func (s basicService) ReadAbout(ctx context.Context, siteID uint) (string, error
 		return "", ErrUnexpected
 	}
 	return string(contentRaw), nil
+}
+
+func (s basicService) ChangeDefaultConfig(ctx context.Context, siteID uint, theme string) error {
+	if siteID <= 0 {
+		return ErrInvalidSiteID
+	}
+
+	sitePath := SitePath(siteID)
+	siteSourcePath := filepath.Join(sitePath, "source")
+	publicConfigPath := filepath.Join(config.CONFIGDIR, theme, "config.json")
+
+	cmd := exec.Command("cp", publicConfigPath, siteSourcePath)
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	// Generate site
+	evt := mq.SiteUpdatedEvent{
+		SiteID:     siteID,
+		ReceivedOn: time.Now().Unix(),
+	}
+	return s.dispatcher.DispatchMessage("re_generate", evt)
 }
 
 // SitePath is the root directory of a site. Typically has a public as well as a source sub-directory.

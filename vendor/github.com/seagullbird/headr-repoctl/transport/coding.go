@@ -262,6 +262,35 @@ func decodeGRPCReadAboutResponse(_ context.Context, grpcReply interface{}) (inte
 	return endpoint.ReadAboutResponse{Content: reply.Content, Err: str2err(reply.Err)}, nil
 }
 
+// ChangeDefaultConfig
+func encodeGRPCChangeDefaultConfigRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(endpoint.ChangeDefaultConfigRequest)
+	return &pb.ChangeDefaultConfigRequest{
+		SiteId: uint64(req.SiteID),
+		Theme:  req.Theme,
+	}, nil
+}
+
+func decodeGRPCChangeDefaultConfigRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ChangeDefaultConfigRequest)
+	return endpoint.ChangeDefaultConfigRequest{
+		SiteID: uint(req.SiteId),
+		Theme:  req.Theme,
+	}, nil
+}
+
+func encodeGRPCChangeDefaultConfigResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(endpoint.ChangeDefaultConfigResponse)
+	return &pb.ChangeDefaultConfigReply{
+		Err: err2str(resp.Err),
+	}, nil
+}
+
+func decodeGRPCChangeDefaultConfigResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ChangeDefaultConfigReply)
+	return endpoint.ChangeDefaultConfigResponse{Err: str2err(reply.Err)}, nil
+}
+
 func err2str(err error) string {
 	if err == nil {
 		return ""

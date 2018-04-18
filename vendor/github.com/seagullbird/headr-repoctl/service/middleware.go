@@ -77,3 +77,9 @@ func (mw loggingMiddleware) ReadAbout(ctx context.Context, siteID uint) (string,
 	mw.logger.Log("method", "ReadAbout", "siteID", siteID, "err", err)
 	return content, err
 }
+
+func (mw loggingMiddleware) ChangeDefaultConfig(ctx context.Context, siteID uint, theme string) error {
+	err := mw.next.ChangeDefaultConfig(ctx, siteID, theme)
+	mw.logger.Log("method", "ChangeDefaultConfig", "siteID", siteID, "theme", theme, "err", err)
+	return err
+}

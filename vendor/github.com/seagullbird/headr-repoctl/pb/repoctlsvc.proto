@@ -13,6 +13,7 @@ service Repoctl {
     rpc ReadConfig (ReadConfigRequest) returns (ReadConfigReply) {}
     rpc UpdateAbout (UpdateAboutRequest) returns (UpdateAboutReply) {}
     rpc ReadAbout (ReadAboutRequest) returns (ReadAboutReply) {}
+    rpc ChangeDefaultConfig (ChangeDefaultConfigRequest) returns (ChangeDefaultConfigReply) {}
 }
 
 message NewSiteRequest {
@@ -81,7 +82,7 @@ message ReadConfigReply {
 
 message UpdateAboutRequest {
     uint64 site_id = 1;
-    string content = 3;
+    string content = 2;
 }
 
 message UpdateAboutReply {
@@ -95,4 +96,13 @@ message ReadAboutRequest {
 message ReadAboutReply {
     string content = 1;
     string err = 2;
+}
+
+message ChangeDefaultConfigRequest {
+    uint64 site_id = 1;
+    string theme = 2;
+}
+
+message ChangeDefaultConfigReply {
+    string err = 1;
 }

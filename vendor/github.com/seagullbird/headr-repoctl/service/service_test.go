@@ -18,7 +18,7 @@ func TestService(t *testing.T) {
 	mockctrl := gomock.NewController(t)
 	defer mockctrl.Finish()
 	mockDispatcher := mqdispatchmock.NewMockDispatcher(mockctrl)
-	mockDispatcher.EXPECT().DispatchMessage(gomock.Any(), gomock.Any()).Return(nil).Times(5)
+	mockDispatcher.EXPECT().DispatchMessage(gomock.Any(), gomock.Any()).Return(nil).Times(6)
 
 	var buf bytes.Buffer
 	logger := log.NewLogfmtLogger(&buf)
@@ -39,6 +39,7 @@ type ServiceTest interface {
 	TestReadConfig(t *testing.T)
 	TestUpdateAbout(t *testing.T)
 	TestReadAbout(t *testing.T)
+	TestChangeDefaultConfig(t *testing.T)
 }
 
 // New wires up all ServiceTest middlewares and returns a ServiceTest instance.
@@ -73,6 +74,7 @@ func RunTests(t *testing.T, svctest ServiceTest) {
 	t.Run("ReadConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadConfig) })
 	t.Run("UpdateAbout", func(t *testing.T) { clearEnvWrapper(t, svctest.TestUpdateAbout) })
 	t.Run("ReadAbout", func(t *testing.T) { clearEnvWrapper(t, svctest.TestReadAbout) })
+	t.Run("ChangeDefaultConfig", func(t *testing.T) { clearEnvWrapper(t, svctest.TestChangeDefaultConfig) })
 }
 
 func clearEnvWrapper(t *testing.T, tester func(t *testing.T)) {
@@ -382,6 +384,52 @@ func (s basicServiceTest) TestReadAbout(t *testing.T) {
 			}
 			if outputError == nil && outputContent != tt.expectedContent {
 				t.Fatalf("siteID=%d, output_content=%s, expected_content=%s, expected_error=%v", tt.siteID, outputContent, tt.expectedContent, tt.expectedError)
+			}
+		})
+	}
+}
+
+func (s basicServiceTest) TestChangeDefaultConfig(t *testing.T) {
+	tests := []struct {
+		name          string
+		siteID        uint
+		theme         string
+		expectedError error
+	}{
+		{"Invalid SiteID 0", 0, "", service.ErrInvalidSiteID},
+		{"Normal Functioning", 1, "test_theme", nil},
+	}
+
+	siteSourcePath := filepath.Join(service.SitePath(1), "source")
+	if err := os.MkdirAll(siteSourcePath, 0644); err != nil {
+		t.Fatalf("Creating config file directory failed: %v", err)
+	}
+
+	testThemeDir := filepath.Join(config.CONFIGDIR, "test_theme")
+	if err := os.MkdirAll(testThemeDir, 0644); err != nil {
+		t.Fatalf("Creating test_theme directory failed: %v", err)
+	}
+	testThemePath := filepath.Join(testThemeDir, "config.json")
+	if err := ioutil.WriteFile(testThemePath, []byte("{\"theme\": \"test-theme\"}"), 0644); err != nil {
+		t.Fatalf("Failed to write test-theme content: %v", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			outputError := s.svc.ChangeDefaultConfig(context.Background(), tt.siteID, tt.theme)
+			if outputError != tt.expectedError {
+				t.Fatalf("siteID=%d, theme=%s, outputError=%v, expected_error=%v", tt.siteID, tt.theme, outputError, tt.expectedError)
+			}
+			if outputError == nil {
+				// make sure the right content is copied
+				currentThemePath := filepath.Join(service.SitePath(tt.siteID), "source", "config.json")
+				raw, err := ioutil.ReadFile(currentThemePath)
+				if err != nil {
+					t.Fatalf("Cannot read current config: %v", err)
+				}
+				if string(raw) != "{\"theme\": \"test-theme\"}" {
+					t.Fatalf("Change config failed, get: %s", string(raw))
+				}
 			}
 		})
 	}

@@ -12,15 +12,16 @@ import (
 )
 
 type grpcServer struct {
-	newsite     grpctransport.Handler
-	deletesite  grpctransport.Handler
-	newpost     grpctransport.Handler
-	rmpost      grpctransport.Handler
-	readpost    grpctransport.Handler
-	writeconfig grpctransport.Handler
-	readconfig  grpctransport.Handler
-	updateabout grpctransport.Handler
-	readabout   grpctransport.Handler
+	newsite             grpctransport.Handler
+	deletesite          grpctransport.Handler
+	newpost             grpctransport.Handler
+	rmpost              grpctransport.Handler
+	readpost            grpctransport.Handler
+	writeconfig         grpctransport.Handler
+	readconfig          grpctransport.Handler
+	updateabout         grpctransport.Handler
+	readabout           grpctransport.Handler
+	changedefaultconfig grpctransport.Handler
 }
 
 // NewGRPCServer makes a set of endpoints available as a gRPC RepoctlServer.
@@ -81,6 +82,12 @@ func NewGRPCServer(endpoints endpoint.Set, logger log.Logger) pb.RepoctlServer {
 			endpoints.ReadAboutEndpoint,
 			decodeGRPCReadAboutRequest,
 			encodeGRPCReadAboutResponse,
+			options...,
+		),
+		changedefaultconfig: grpctransport.NewServer(
+			endpoints.ChangeDefaultConfigEndpoint,
+			decodeGRPCChangeDefaultConfigRequest,
+			encodeGRPCChangeDefaultConfigResponse,
 			options...,
 		),
 	}
@@ -189,19 +196,31 @@ func NewGRPCClient(conn *grpc.ClientConn, logger log.Logger) service.Service {
 			pb.ReadAboutReply{},
 		).Endpoint()
 	}
+	var changedefaultconfigEndpoint kitendpoint.Endpoint
+	{
+		changedefaultconfigEndpoint = grpctransport.NewClient(
+			conn,
+			"pb.Repoctl",
+			"ChangeDefaultConfig",
+			encodeGRPCChangeDefaultConfigRequest,
+			decodeGRPCChangeDefaultConfigResponse,
+			pb.ChangeDefaultConfigReply{},
+		).Endpoint()
+	}
 	// Returning the endpoint.Set as a service.Service relies on the
 	// endpoint.Set implementing the Service methods. That's just a simple bit
 	// of glue code.
 	return endpoint.Set{
-		NewSiteEndpoint:     newsiteEndpoint,
-		DeleteSiteEndpoint:  deletesiteEndpoint,
-		WritePostEndpoint:   newpostEndpoint,
-		RemovePostEndpoint:  deletepostEndpoint,
-		ReadPostEndpoint:    readpostEndpoint,
-		WriteConfigEndpoint: writeconfigEndpoint,
-		ReadConfigEndpoint:  readconfigEndpoint,
-		UpdateAboutEndpoint: updateaboutEndpoint,
-		ReadAboutEndpoint:   readaboutEndpoint,
+		NewSiteEndpoint:             newsiteEndpoint,
+		DeleteSiteEndpoint:          deletesiteEndpoint,
+		WritePostEndpoint:           newpostEndpoint,
+		RemovePostEndpoint:          deletepostEndpoint,
+		ReadPostEndpoint:            readpostEndpoint,
+		WriteConfigEndpoint:         writeconfigEndpoint,
+		ReadConfigEndpoint:          readconfigEndpoint,
+		UpdateAboutEndpoint:         updateaboutEndpoint,
+		ReadAboutEndpoint:           readaboutEndpoint,
+		ChangeDefaultConfigEndpoint: changedefaultconfigEndpoint,
 	}
 }
 
@@ -275,4 +294,12 @@ func (s *grpcServer) ReadAbout(ctx context.Context, req *pb.ReadAboutRequest) (*
 		return nil, err
 	}
 	return rep.(*pb.ReadAboutReply), nil
+}
+
+func (s *grpcServer) ChangeDefaultConfig(ctx context.Context, req *pb.ChangeDefaultConfigRequest) (*pb.ChangeDefaultConfigReply, error) {
+	_, rep, err := s.changedefaultconfig.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ChangeDefaultConfigReply), nil
 }

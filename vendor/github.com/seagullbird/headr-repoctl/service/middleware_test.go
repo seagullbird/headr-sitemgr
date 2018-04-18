@@ -125,3 +125,14 @@ func (mwt loggingMiddlewareTest) TestReadAbout(t *testing.T) {
 		t.Fatal("ReadAbout log mismatches\n", "want:\n", want, "get\n", get)
 	}
 }
+
+func (mwt loggingMiddlewareTest) TestChangeDefaultConfig(t *testing.T) {
+	mwt.next.TestChangeDefaultConfig(t)
+	want := "method=ChangeDefaultConfig siteID=0 theme= err=\"invalid siteID\"\n" +
+		"method=ChangeDefaultConfig siteID=1 theme=test_theme err=null\n"
+	get := mwt.buffer.String()
+	mwt.buffer.Reset()
+	if want != get {
+		t.Fatal("ChangeDefaultConfig log mismatches\n", "want:\n", want, "get\n", get)
+	}
+}

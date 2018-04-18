@@ -11,30 +11,32 @@ import (
 // be used as a helper struct, to collect all of the endpoints into a single
 // parameter.
 type Set struct {
-	NewSiteEndpoint     endpoint.Endpoint
-	DeleteSiteEndpoint  endpoint.Endpoint
-	WritePostEndpoint   endpoint.Endpoint
-	RemovePostEndpoint  endpoint.Endpoint
-	ReadPostEndpoint    endpoint.Endpoint
-	WriteConfigEndpoint endpoint.Endpoint
-	ReadConfigEndpoint  endpoint.Endpoint
-	UpdateAboutEndpoint endpoint.Endpoint
-	ReadAboutEndpoint   endpoint.Endpoint
+	NewSiteEndpoint             endpoint.Endpoint
+	DeleteSiteEndpoint          endpoint.Endpoint
+	WritePostEndpoint           endpoint.Endpoint
+	RemovePostEndpoint          endpoint.Endpoint
+	ReadPostEndpoint            endpoint.Endpoint
+	WriteConfigEndpoint         endpoint.Endpoint
+	ReadConfigEndpoint          endpoint.Endpoint
+	UpdateAboutEndpoint         endpoint.Endpoint
+	ReadAboutEndpoint           endpoint.Endpoint
+	ChangeDefaultConfigEndpoint endpoint.Endpoint
 }
 
 // New returns a Set that wraps the provided server, and wires in all of the
 // expected endpoint middlewares via the various parameters.
 func New(svc service.Service, logger log.Logger) Set {
 	return Set{
-		NewSiteEndpoint:     Middlewares(MakeNewSiteEndpoint(svc), logger),
-		DeleteSiteEndpoint:  Middlewares(MakeDeleteSiteEndpoint(svc), logger),
-		WritePostEndpoint:   Middlewares(MakeWritePostEndpoint(svc), logger),
-		RemovePostEndpoint:  Middlewares(MakeRemovePostEndpoint(svc), logger),
-		ReadPostEndpoint:    Middlewares(MakeReadPostEndpoint(svc), logger),
-		WriteConfigEndpoint: Middlewares(MakeWriteConfigEndpoint(svc), logger),
-		ReadConfigEndpoint:  Middlewares(MakeReadConfigEndpoint(svc), logger),
-		UpdateAboutEndpoint: Middlewares(MakeUpdateAboutEndpoint(svc), logger),
-		ReadAboutEndpoint:   Middlewares(MakeReadAboutEndpoint(svc), logger),
+		NewSiteEndpoint:             Middlewares(MakeNewSiteEndpoint(svc), logger),
+		DeleteSiteEndpoint:          Middlewares(MakeDeleteSiteEndpoint(svc), logger),
+		WritePostEndpoint:           Middlewares(MakeWritePostEndpoint(svc), logger),
+		RemovePostEndpoint:          Middlewares(MakeRemovePostEndpoint(svc), logger),
+		ReadPostEndpoint:            Middlewares(MakeReadPostEndpoint(svc), logger),
+		WriteConfigEndpoint:         Middlewares(MakeWriteConfigEndpoint(svc), logger),
+		ReadConfigEndpoint:          Middlewares(MakeReadConfigEndpoint(svc), logger),
+		UpdateAboutEndpoint:         Middlewares(MakeUpdateAboutEndpoint(svc), logger),
+		ReadAboutEndpoint:           Middlewares(MakeReadAboutEndpoint(svc), logger),
+		ChangeDefaultConfigEndpoint: Middlewares(MakeChangeDefaultConfigEndpoint(svc), logger),
 	}
 }
 
@@ -157,6 +159,20 @@ func (s Set) ReadAbout(ctx context.Context, siteID uint) (string, error) {
 	return response.Content, response.Err
 }
 
+// ChangeDefaultConfig implements the service interface, so Set may be used as a service.
+// This is primarily useful in the context of a client library.
+func (s Set) ChangeDefaultConfig(ctx context.Context, siteID uint, theme string) error {
+	resp, err := s.ChangeDefaultConfigEndpoint(ctx, ChangeDefaultConfigRequest{
+		SiteID: siteID,
+		Theme:  theme,
+	})
+	if err != nil {
+		return err
+	}
+	response := resp.(ChangeDefaultConfigResponse)
+	return response.Err
+}
+
 // MakeNewSiteEndpoint constructs a NewSite endpoint wrapping the service.
 func MakeNewSiteEndpoint(svc service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
@@ -235,5 +251,14 @@ func MakeReadAboutEndpoint(svc service.Service) endpoint.Endpoint {
 		req := request.(ReadAboutRequest)
 		content, err := svc.ReadAbout(ctx, req.SiteID)
 		return ReadAboutResponse{Content: content, Err: err}, nil
+	}
+}
+
+// MakeChangeDefaultConfigEndpoint constructs a ChangeDefaultConfig endpoint wrapping the service.
+func MakeChangeDefaultConfigEndpoint(svc service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(ChangeDefaultConfigRequest)
+		err = svc.ChangeDefaultConfig(ctx, req.SiteID, req.Theme)
+		return ChangeDefaultConfigResponse{Err: err}, nil
 	}
 }

@@ -9,4 +9,6 @@ var (
 	DATADIR = "/data"
 	// SITESDIR contains all user sites
 	SITESDIR = filepath.Join(DATADIR, "sites")
+	// CONFIGDIR contains all default configs
+	CONFIGDIR = filepath.Join(DATADIR, "configs")
 )
